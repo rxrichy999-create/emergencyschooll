@@ -229,7 +229,7 @@ export default function EduSafeDashboard() {
       return;
     }
 
-    const newReportData = {
+    const newReportData: Omit<IncidentReport, 'timestamp' | 'status' | 'timeline'> = {
       id: `REP-${Math.floor(100 + Math.random() * 900)}`,
       title: title.trim(),
       category,
@@ -287,7 +287,7 @@ export default function EduSafeDashboard() {
   // Dispatch Simulated Instant SOS via API POST
   const handleTriggerSOS = async (emergencyType: string) => {
     const sosId = `SOS-${Math.floor(100 + Math.random() * 900)}`;
-    const newReportData = {
+    const newReportData: Omit<IncidentReport, 'timestamp' | 'status' | 'timeline'> = {
       id: sosId,
       title: `⚡ สัญญาณแจ้งเหตุฉุกเฉินด่วน: ${emergencyType}`,
       category: emergencyType === 'อัคคีภัย / ควันไฟ' ? 'disaster' : 'accident',
@@ -685,7 +685,7 @@ export default function EduSafeDashboard() {
                   <rect width="100%" height="100%" fill="url(#grid)" className="rounded-xl opacity-30" />
 
                   {/* Campus Grounds outline */}
-                  <path d="M 50 380 Q 400 420 750 380 Q 780 200 700 70 Q 350 40 100 70 Q 30 200 50 380 Z" fill="currentColor" className="text-slate-200/50 dark:text-zinc-900/60" stroke="currentColor" strokeWidth="2" strokeDasharray="5 5" className="text-slate-300 dark:text-zinc-800" />
+                  <path d="M 50 380 Q 400 420 750 380 Q 780 200 700 70 Q 350 40 100 70 Q 30 200 50 380 Z" strokeWidth="2" strokeDasharray="5 5" className="fill-slate-200/50 stroke-slate-300 dark:fill-zinc-900/60 dark:stroke-zinc-800" />
 
                   {/* Roadways / Walkways inside school */}
                   <path d="M 250 80 Q 350 200 400 380 M 100 240 H 700" stroke="currentColor" strokeWidth="20" strokeLinecap="round" className="text-slate-200 dark:text-zinc-900 opacity-60" />
