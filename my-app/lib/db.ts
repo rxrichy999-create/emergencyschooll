@@ -3,6 +3,7 @@ import path from 'path';
 
 // Define the path to our JSON file database
 const DB_PATH = path.join(process.cwd(), 'data', 'reports.json');
+const NOTIFICATIONS_DB_PATH = path.join(process.cwd(), 'data', 'notifications.json');
 
 // Interface definition matching the frontend
 export interface IncidentReport {
@@ -24,6 +25,17 @@ export interface IncidentReport {
     time: string;
     note: string;
   }[];
+}
+
+export interface NotificationHistoryItem {
+  id: string;
+  reportId?: string;
+  type: 'report_created' | 'sos_triggered' | 'status_updated' | 'report_deleted' | 'system';
+  title: string;
+  message: string;
+  urgency?: IncidentReport['urgency'];
+  status?: IncidentReport['status'];
+  createdAt: string;
 }
 
 // Initial seed data representing EGAT Mae Moh Technical College
@@ -138,4 +150,51 @@ export function writeReports(reports: IncidentReport[]): void {
   } catch (error) {
     console.error('Database write error:', error);
   }
+}
+
+export function readNotifications(): NotificationHistoryItem[] {
+  try {
+    const dir = path.dirname(NOTIFICATIONS_DB_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    if (!fs.existsSync(NOTIFICATIONS_DB_PATH)) {
+      fs.writeFileSync(NOTIFICATIONS_DB_PATH, JSON.stringify([], null, 2), 'utf-8');
+      return [];
+    }
+
+    const content = fs.readFileSync(NOTIFICATIONS_DB_PATH, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    console.error('Notifications read error:', error);
+    return [];
+  }
+}
+
+export function writeNotifications(notifications: NotificationHistoryItem[]): void {
+  try {
+    const dir = path.dirname(NOTIFICATIONS_DB_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(NOTIFICATIONS_DB_PATH, JSON.stringify(notifications, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('Notifications write error:', error);
+  }
+}
+
+export function appendNotification(
+  notification: Omit<NotificationHistoryItem, 'id' | 'createdAt'>
+): NotificationHistoryItem {
+  const notifications = readNotifications();
+  const newNotification: NotificationHistoryItem = {
+    ...notification,
+    id: `NTF-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  notifications.unshift(newNotification);
+  writeNotifications(notifications.slice(0, 200));
+  return newNotification;
 }

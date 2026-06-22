@@ -24,6 +24,33 @@ interface IncidentReport {
   }[];
 }
 
+interface NotificationHistoryItem {
+  id: string;
+  reportId?: string;
+  type: 'report_created' | 'sos_triggered' | 'status_updated' | 'report_deleted' | 'system';
+  title: string;
+  message: string;
+  urgency?: IncidentReport['urgency'];
+  status?: IncidentReport['status'];
+  createdAt: Date;
+}
+
+type ApiIncidentReport = Omit<IncidentReport, 'timestamp' | 'timeline'> & {
+  timestamp: string;
+  timeline: Array<Omit<IncidentReport['timeline'][number], 'time'> & { time: string }>;
+};
+
+type ApiNotificationHistoryItem = Omit<NotificationHistoryItem, 'createdAt'> & {
+  createdAt: string;
+};
+
+let clientIdSequence = 0;
+
+const createClientId = (prefix: 'REP' | 'SOS') => {
+  clientIdSequence += 1;
+  return `${prefix}-${String(clientIdSequence).padStart(3, '0')}`;
+};
+
 const CATEGORY_MAP = {
   accident: { label: 'อุบัติเหตุ / เจ็บป่วย', color: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50' },
   bullying: { label: 'ทะเลาะวิวาท / บูลลี่', color: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/50' },
@@ -137,6 +164,7 @@ const INITIAL_REPORTS: IncidentReport[] = [
 
 export default function EduSafeDashboard() {
   const [reports, setReports] = useState<IncidentReport[]>([]);
+  const [notifications, setNotifications] = useState<NotificationHistoryItem[]>([]);
   const [selectedReport, setSelectedReport] = useState<IncidentReport | null>(null);
   
   // Form states
@@ -168,19 +196,35 @@ export default function EduSafeDashboard() {
     try {
       const res = await fetch('/api/reports');
       if (res.ok) {
-        const data = await res.json();
+        const data = (await res.json()) as ApiIncidentReport[];
         // Parse date strings back into Date objects for the React state
-        const parsed = data.map((r: any) => ({
+        const parsed = data.map((r) => ({
           ...r,
           timestamp: new Date(r.timestamp),
-          timeline: r.timeline.map((tl: any) => ({ ...tl, time: new Date(tl.time) }))
+          timeline: r.timeline.map((tl) => ({ ...tl, time: new Date(tl.time) }))
         }));
         setReports(parsed);
       } else {
         loadFromLocalStorage();
       }
-    } catch (e) {
+    } catch {
       loadFromLocalStorage();
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch('/api/notifications');
+      if (res.ok) {
+        const data = (await res.json()) as ApiNotificationHistoryItem[];
+        const parsed = data.map((item) => ({
+          ...item,
+          createdAt: new Date(item.createdAt)
+        }));
+        setNotifications(parsed);
+      }
+    } catch {
+      setNotifications([]);
     }
   };
 
@@ -189,13 +233,13 @@ export default function EduSafeDashboard() {
     const saved = localStorage.getItem('edusafe_reports');
     if (saved) {
       try {
-        const parsed = JSON.parse(saved).map((r: any) => ({
+        const parsed = (JSON.parse(saved) as ApiIncidentReport[]).map((r) => ({
           ...r,
           timestamp: new Date(r.timestamp),
-          timeline: r.timeline.map((tl: any) => ({ ...tl, time: new Date(tl.time) }))
+          timeline: r.timeline.map((tl) => ({ ...tl, time: new Date(tl.time) }))
         }));
         setReports(parsed);
-      } catch (e) {
+      } catch {
         setReports(INITIAL_REPORTS);
       }
     } else {
@@ -210,7 +254,13 @@ export default function EduSafeDashboard() {
   };
 
   useEffect(() => {
-    fetchReports();
+    const loadInitialData = async () => {
+      await fetchReports();
+      await fetchNotifications();
+    };
+
+    void loadInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Toast auto-dismiss
@@ -230,7 +280,7 @@ export default function EduSafeDashboard() {
     }
 
     const newReportData: Omit<IncidentReport, 'timestamp' | 'status' | 'timeline'> = {
-      id: `REP-${Math.floor(100 + Math.random() * 900)}`,
+      id: createClientId('REP'),
       title: title.trim(),
       category,
       urgency,
@@ -251,6 +301,7 @@ export default function EduSafeDashboard() {
       
       if (res.ok) {
         await fetchReports();
+        await fetchNotifications();
         showToast(`ส่งรายงานเหตุหมายเลข ${newReportData.id} สำเร็จ เจ้าหน้าที่ได้รับเรื่องแล้ว`, 'success');
       } else {
         // Fallback
@@ -263,7 +314,7 @@ export default function EduSafeDashboard() {
         saveToLocalStorage(fallbackReport);
         showToast(`บันทึกเหตุในเครื่องสำเร็จ (เซิร์ฟเวอร์ขัดข้อง)`, 'info');
       }
-    } catch (err) {
+    } catch {
       // Fallback
       const fallbackReport: IncidentReport = {
         ...newReportData,
@@ -286,7 +337,7 @@ export default function EduSafeDashboard() {
 
   // Dispatch Simulated Instant SOS via API POST
   const handleTriggerSOS = async (emergencyType: string) => {
-    const sosId = `SOS-${Math.floor(100 + Math.random() * 900)}`;
+    const sosId = createClientId('SOS');
     const newReportData: Omit<IncidentReport, 'timestamp' | 'status' | 'timeline'> = {
       id: sosId,
       title: `⚡ สัญญาณแจ้งเหตุฉุกเฉินด่วน: ${emergencyType}`,
@@ -308,6 +359,7 @@ export default function EduSafeDashboard() {
       });
       if (res.ok) {
         await fetchReports();
+        await fetchNotifications();
         showToast(`🚨 ส่งรหัสเตือนภัยวิกฤต ${sosId} ไปยังทีมระงับเหตุแล้ว!`, 'success');
       } else {
         const fallbackReport: IncidentReport = {
@@ -319,7 +371,7 @@ export default function EduSafeDashboard() {
         saveToLocalStorage(fallbackReport);
         showToast(`🚨 ส่ง SOS สำเร็จ (จำลองเก็บในเครื่อง)`, 'success');
       }
-    } catch (e) {
+    } catch {
       const fallbackReport: IncidentReport = {
         ...newReportData,
         timestamp: new Date(),
@@ -347,22 +399,23 @@ export default function EduSafeDashboard() {
       });
 
       if (res.ok) {
-        const updatedFromServer = await res.json();
+        const updatedFromServer = (await res.json()) as ApiIncidentReport;
         const parsedReport = {
           ...updatedFromServer,
           timestamp: new Date(updatedFromServer.timestamp),
-          timeline: updatedFromServer.timeline.map((tl: any) => ({ ...tl, time: new Date(tl.time) }))
+          timeline: updatedFromServer.timeline.map((tl) => ({ ...tl, time: new Date(tl.time) }))
         };
 
         const updatedList = reports.map(r => r.id === id ? parsedReport : r);
         setReports(updatedList);
         setSelectedReport(parsedReport);
         setAdminNoteInput('');
+        await fetchNotifications();
         showToast(`อัปเดตสถานะใบงานเป็น [${STATUS_MAP[newStatus].label}] เรียบร้อย`, 'success');
       } else {
         showToast('ล้มเหลวในการเชื่อมต่อกับเซิร์ฟเวอร์หลังบ้าน', 'danger');
       }
-    } catch (error) {
+    } catch {
       showToast('ออฟไลน์: ไม่สามารถอัปเดตสถานะบนฐานข้อมูลส่วนกลางได้', 'danger');
     }
   };
@@ -378,11 +431,12 @@ export default function EduSafeDashboard() {
           const updated = reports.filter(r => r.id !== id);
           setReports(updated);
           setSelectedReport(null);
+          await fetchNotifications();
           showToast('ลบรายการแจ้งเหตุสำเร็จ', 'info');
         } else {
           showToast('ไม่สามารถลบรายการได้เนื่องจากขัดข้องทางเซิร์ฟเวอร์', 'danger');
         }
-      } catch (error) {
+      } catch {
         showToast('ออฟไลน์: ไม่สามารถดำเนินการลบจากฐานข้อมูลได้', 'danger');
       }
     }
@@ -399,6 +453,7 @@ export default function EduSafeDashboard() {
     investigating: reports.filter(r => r.status === 'investigating').length,
     resolved: reports.filter(r => r.status === 'resolved').length,
     criticalCount: reports.filter(r => r.urgency === 'critical' && r.status !== 'resolved').length,
+    notificationCount: notifications.length,
   };
 
   const filterReports = () => {
@@ -412,17 +467,6 @@ export default function EduSafeDashboard() {
   };
 
   const filteredReports = filterReports();
-
-  // Color matching helpers
-  const getUrgencyIndicator = (urgency: IncidentReport['urgency']) => {
-    switch (urgency) {
-      case 'low': return 'bg-slate-400';
-      case 'medium': return 'bg-amber-400';
-      case 'high': return 'bg-orange-500';
-      case 'critical': return 'bg-red-600 animate-ping';
-      default: return 'bg-slate-400';
-    }
-  };
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${theme === 'dark' ? 'dark bg-[#0b0f19] text-zinc-100' : 'bg-slate-50 text-slate-800'}`}>
@@ -645,6 +689,62 @@ export default function EduSafeDashboard() {
             </div>
           </div>
 
+        </section>
+
+        <section className="glass-panel p-6 rounded-3xl shadow-sm mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <svg className="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0m6 0H9" />
+                </svg>
+                ประวัติการแจ้งเตือน
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">บันทึกเหตุการณ์ล่าสุดจากการแจ้งเหตุ, SOS, การอัปเดตสถานะ และการลบรายการ</p>
+            </div>
+
+            <button
+              onClick={fetchNotifications}
+              className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-xs font-semibold text-slate-600 dark:text-zinc-300 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              รีเฟรชประวัติ
+            </button>
+          </div>
+
+          {notifications.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 dark:border-zinc-800 p-6 text-center">
+              <p className="text-sm font-semibold text-slate-600 dark:text-zinc-300">ยังไม่มีประวัติการแจ้งเตือน</p>
+              <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">เมื่อมีการแจ้งเหตุหรืออัปเดตสถานะ ระบบจะบันทึกไว้ที่นี่อัตโนมัติ</p>
+            </div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              {notifications.slice(0, 5).map((item) => (
+                <div key={item.id} className="rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/60 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className={`h-2.5 w-2.5 mt-1 rounded-full flex-shrink-0 ${
+                      item.type === 'sos_triggered' ? 'bg-rose-500 animate-ping' :
+                      item.type === 'status_updated' ? 'bg-blue-500' :
+                      item.type === 'report_deleted' ? 'bg-slate-400' :
+                      'bg-emerald-500'
+                    }`} />
+                    <span className="text-[10px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
+                      {new Date(item.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
+                    </span>
+                  </div>
+                  <h4 className="mt-2 text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{item.title}</h4>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 line-clamp-2">{item.message}</p>
+                  {item.reportId && (
+                    <span className="mt-3 inline-flex rounded-lg bg-slate-100 dark:bg-zinc-800 px-2 py-1 text-[10px] font-mono font-semibold text-slate-500 dark:text-zinc-300">
+                      {item.reportId}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Map and Charts Grid Section */}

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readReports, writeReports, IncidentReport } from '@/lib/db';
+import { appendNotification, readReports, writeReports } from '@/lib/db';
 
 export async function PATCH(
   request: Request,
@@ -16,6 +16,7 @@ export async function PATCH(
     }
     
     const report = reports[index];
+    const previousStatus = report.status;
     
     // Update values
     if (body.status) report.status = body.status;
@@ -36,6 +37,15 @@ export async function PATCH(
     
     reports[index] = report;
     writeReports(reports);
+
+    appendNotification({
+      reportId: report.id,
+      type: 'status_updated',
+      title: 'อัปเดตสถานะรายงานเหตุ',
+      message: `${report.id}: ${previousStatus} -> ${report.status}${body.adminNotes ? ` (${body.adminNotes})` : ''}`,
+      urgency: report.urgency,
+      status: report.status,
+    });
     
     return NextResponse.json(report);
   } catch (error) {
@@ -52,12 +62,23 @@ export async function DELETE(
     const { id } = await params;
     const reports = readReports();
     
+    const deletedReport = reports.find(r => r.id === id);
     const filtered = reports.filter(r => r.id !== id);
     if (reports.length === filtered.length) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
     
     writeReports(filtered);
+
+    appendNotification({
+      reportId: deletedReport?.id,
+      type: 'report_deleted',
+      title: 'ลบรายงานเหตุ',
+      message: deletedReport ? `${deletedReport.id}: ${deletedReport.title}` : `ลบรายงาน ${id}`,
+      urgency: deletedReport?.urgency,
+      status: deletedReport?.status,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('API DELETE error:', error);

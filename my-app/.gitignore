@@ -46,4 +46,8 @@ next-env.d.ts
 .impeccable/
 .agents/
 .gemini/
+.npm-cache/
+
+# local JSON database files
+/data/*.json
 

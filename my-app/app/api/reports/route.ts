@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readReports, writeReports, IncidentReport } from '@/lib/db';
+import { appendNotification, readReports, writeReports, IncidentReport } from '@/lib/db';
 
 export async function GET() {
   const reports = readReports();
@@ -33,6 +33,15 @@ export async function POST(request: Request) {
     
     reports.unshift(newReport);
     writeReports(reports);
+
+    appendNotification({
+      reportId: newReport.id,
+      type: newReport.id.startsWith('SOS-') ? 'sos_triggered' : 'report_created',
+      title: newReport.id.startsWith('SOS-') ? 'แจ้งเตือน SOS ใหม่' : 'รับรายงานเหตุใหม่',
+      message: `${newReport.id}: ${newReport.title}`,
+      urgency: newReport.urgency,
+      status: newReport.status,
+    });
     
     return NextResponse.json(newReport, { status: 201 });
   } catch (error) {
