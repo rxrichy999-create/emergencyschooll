@@ -497,25 +497,25 @@ export default function EduSafeDashboard() {
 
       {/* Main Header */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/60 dark:bg-zinc-950/80">
-        <div className="mx-auto flex max-w-7xl h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl h-16 items-center justify-between px-3 sm:px-6 lg:px-8">
           
           {/* Logo Brand */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white shadow-lg shadow-rose-500/30">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white shadow-lg shadow-rose-500/30 flex-shrink-0">
+              <svg className="h-5.5 w-5.5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                SafeMaeMoh <span className="text-xs bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-normal px-2 py-0.5 rounded-full border border-indigo-500/20">วท. กฟผ. แม่เมาะ</span>
+              <h1 className="text-base sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+                SafeMaeMoh <span className="hidden sm:inline-flex text-xs bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-normal px-2 py-0.5 rounded-full border border-indigo-500/20">วท. กฟผ. แม่เมาะ</span>
               </h1>
-              <p className="text-[10px] text-slate-500 dark:text-zinc-400">ระบบรายงานเหตุและจัดการความปลอดภัย วิทยาลัยเทคนิค กฟผ. แม่เมาะ</p>
+              <p className="hidden md:block text-[10px] text-slate-500 dark:text-zinc-400">ระบบรายงานเหตุและจัดการความปลอดภัย วิทยาลัยเทคนิค กฟผ. แม่เมาะ</p>
             </div>
           </div>
 
           {/* Quick Header Widgets */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             
             {/* Status light */}
             <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-zinc-800 text-xs font-medium">
@@ -537,36 +537,38 @@ export default function EduSafeDashboard() {
             {/* Dark Mode Switcher */}
             <button
               onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors text-slate-600 dark:text-zinc-300"
+              className="p-1.5 sm:p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors text-slate-600 dark:text-zinc-300"
               aria-label="Toggle Theme"
             >
               {theme === 'light' ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                <svg className="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
               ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m2.828-9.9a5 5 0 117.07 7.07l-2.828-2.828z" /></svg>
+                <svg className="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m2.828-9.9a5 5 0 117.07 7.07l-2.828-2.828z" /></svg>
               )}
             </button>
 
             {/* Admin Toggle button */}
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
+            <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100 dark:bg-zinc-800 p-0.5 sm:p-1 rounded-xl">
               <button
                 onClick={() => {
                   setIsAdminMode(false);
                   showToast('สลับเข้าโหมดผู้ใช้ทั่วไป (แจ้งเหตุ)', 'info');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${!isAdminMode ? 'bg-white dark:bg-zinc-900 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-zinc-300'}`}
+                className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all ${!isAdminMode ? 'bg-white dark:bg-zinc-900 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-zinc-300'}`}
               >
-                ผู้ใช้ทั่วไป
+                <span className="hidden min-[400px]:inline">ผู้ใช้ทั่วไป</span>
+                <span className="min-[400px]:hidden">ทั่วไป</span>
               </button>
               <button
                 onClick={() => {
                   setIsAdminMode(true);
                   showToast('สลับเข้าโหมดผู้ดูแลระบบ (ฝ่ายจัดการภัย)', 'info');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${isAdminMode ? 'bg-gradient-to-r from-rose-600 to-orange-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 dark:hover:text-zinc-300'}`}
+                className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all flex items-center gap-1 sm:gap-1.5 ${isAdminMode ? 'bg-gradient-to-r from-rose-600 to-orange-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 dark:hover:text-zinc-300'}`}
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                ผู้ดูแลระบบ
+                <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span className="hidden min-[400px]:inline">ผู้ดูแลระบบ</span>
+                <span className="min-[400px]:hidden">แอดมิน</span>
               </button>
             </div>
 
@@ -578,7 +580,7 @@ export default function EduSafeDashboard() {
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         
         {/* Banner Section */}
-        <div className="relative mb-8 rounded-3xl overflow-hidden bg-gradient-to-r from-rose-900 via-indigo-950 to-slate-950 p-6 text-white shadow-xl">
+        <div className="relative mb-6 sm:mb-8 rounded-3xl overflow-hidden bg-gradient-to-r from-rose-900 via-indigo-950 to-slate-950 p-5 sm:p-8 text-white shadow-xl">
           <div className="absolute right-0 top-0 opacity-15 transform translate-x-20 -translate-y-10 scale-125 hidden lg:block pointer-events-none">
             {/* Background design */}
             <svg width="400" height="400" viewBox="0 0 100 100" fill="none">
@@ -587,27 +589,27 @@ export default function EduSafeDashboard() {
             </svg>
           </div>
 
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-semibold mb-3 border border-rose-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
                 แจ้งเหตุด่วน 24 ชั่วโมง
               </div>
-              <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-white">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
                 ระบบจัดการความปลอดภัยและภัยพิบัติ วิทยาลัยเทคนิค กฟผ. แม่เมาะ
               </h2>
-              <p className="mt-2 text-slate-300 text-sm sm:text-base leading-relaxed">
+              <p className="mt-2 text-slate-300 text-xs sm:text-sm md:text-base leading-relaxed">
                 หากพบเหตุด่วน เหตุไฟฟ้า/เครื่องจักรชำรุดในโรงฝึกงาน, อุบัติเหตุการเรียน, สารเคมีรั่วไหล หรือภัยไฟป่ารอบวิทยาลัย รายงานเข้าสู่ระบบได้ทันที 
                 ข้อมูลผู้แจ้งจะถูกจัดเก็บเป็นความลับสูงสุด หรือสามารถเลือกรายงานไม่ระบุตัวตน (Anonymous) ได้
               </p>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto flex-shrink-0">
               <button
                 onClick={() => setShowSosModal(true)}
-                className="px-6 py-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-lg tracking-wide shadow-lg shadow-red-600/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 animate-pulse-glow"
+                className="px-5 py-3 sm:px-6 sm:py-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-base sm:text-lg tracking-wide shadow-lg shadow-red-600/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 animate-pulse-glow w-full sm:w-auto"
               >
-                <span className="flex h-3.5 w-3.5 items-center justify-center">
+                <span className="flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center">
                   <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                 </span>
@@ -616,7 +618,7 @@ export default function EduSafeDashboard() {
               
               <a
                 href="#report-form"
-                className="px-6 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold text-center transition-all hover:border-white/40 flex items-center justify-center"
+                className="px-5 py-3 sm:px-6 sm:py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold text-sm sm:text-base text-center transition-all hover:border-white/40 flex items-center justify-center w-full sm:w-auto"
               >
                 กรอกรายงานเหตุทั่วไป
               </a>
@@ -625,12 +627,12 @@ export default function EduSafeDashboard() {
         </div>
 
         {/* Dynamic Statistics Cards */}
-        <section className="grid grid-cols-2 gap-4 md:grid-cols-4 mb-8">
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 mb-8">
           
-          <div className="glass-panel p-5 rounded-2xl shadow-sm transition-transform hover:-translate-y-0.5">
+          <div className="glass-panel p-4 sm:p-5 rounded-2xl shadow-sm transition-transform hover:-translate-y-0.5">
             <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400">เหตุแจ้งทั้งหมด</p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-slate-900 dark:text-white">{stats.total}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">{stats.total}</span>
               <span className="text-xs text-slate-400">รายการ</span>
             </div>
             <div className="mt-2 h-1.5 w-full bg-slate-200 dark:bg-zinc-800 rounded-full overflow-hidden">
@@ -638,13 +640,13 @@ export default function EduSafeDashboard() {
             </div>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl shadow-sm transition-transform hover:-translate-y-0.5">
+          <div className="glass-panel p-4 sm:p-5 rounded-2xl shadow-sm transition-transform hover:-translate-y-0.5">
             <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping"></span>
               รอดำเนินการ
             </p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-amber-500">{stats.pending}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-amber-500">{stats.pending}</span>
               <span className="text-xs text-slate-400">รายการ</span>
             </div>
             <div className="mt-2 h-1.5 w-full bg-slate-200 dark:bg-zinc-800 rounded-full overflow-hidden">
@@ -655,13 +657,13 @@ export default function EduSafeDashboard() {
             </div>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl shadow-sm transition-transform hover:-translate-y-0.5">
+          <div className="glass-panel p-4 sm:p-5 rounded-2xl shadow-sm transition-transform hover:-translate-y-0.5">
             <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
               กำลังดำเนินการ
             </p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-blue-500">{stats.investigating}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-blue-500">{stats.investigating}</span>
               <span className="text-xs text-slate-400">รายการ</span>
             </div>
             <div className="mt-2 h-1.5 w-full bg-slate-200 dark:bg-zinc-800 rounded-full overflow-hidden">
@@ -672,13 +674,13 @@ export default function EduSafeDashboard() {
             </div>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl shadow-sm transition-transform hover:-translate-y-0.5">
+          <div className="glass-panel p-4 sm:p-5 rounded-2xl shadow-sm transition-transform hover:-translate-y-0.5">
             <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
               แก้ไขเสร็จสิ้น
             </p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-emerald-500">{stats.resolved}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-emerald-500">{stats.resolved}</span>
               <span className="text-xs text-slate-400">รายการ</span>
             </div>
             <div className="mt-2 h-1.5 w-full bg-slate-200 dark:bg-zinc-800 rounded-full overflow-hidden">
@@ -691,7 +693,7 @@ export default function EduSafeDashboard() {
 
         </section>
 
-        <section className="glass-panel p-6 rounded-3xl shadow-sm mb-8">
+        <section className="glass-panel p-4 sm:p-6 rounded-3xl shadow-sm mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -751,7 +753,7 @@ export default function EduSafeDashboard() {
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           
           {/* Interactive School Floor Map (Takes 2 Columns on Large Screens) */}
-          <div className="lg:col-span-2 glass-panel p-6 rounded-3xl shadow-sm flex flex-col justify-between">
+          <div className="lg:col-span-2 glass-panel p-4 sm:p-6 rounded-3xl shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-center mb-4">
                 <div>
@@ -774,7 +776,7 @@ export default function EduSafeDashboard() {
               </div>
 
               {/* Map SVG container */}
-              <div className="relative border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/40 p-4 min-h-[300px] flex items-center justify-center">
+              <div className="relative border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/40 p-2 sm:p-4 min-h-[300px] flex items-center justify-center">
                 <svg className="w-full max-w-xl h-auto" viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg">
                   {/* Grid Lines background */}
                   <defs>
@@ -920,7 +922,7 @@ export default function EduSafeDashboard() {
               </div>
             </div>
 
-            <div className="mt-4 flex items-center gap-4 text-xs text-slate-500 dark:text-zinc-400">
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500 dark:text-zinc-400">
               <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></span>วิกฤต (SOS)</span>
               <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-orange-500"></span>เร่งด่วนสูง</span>
               <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-400"></span>เร่งด่วนปานกลาง</span>
@@ -929,7 +931,7 @@ export default function EduSafeDashboard() {
           </div>
 
           {/* SVG Infographics (Trending statistics) */}
-          <div className="glass-panel p-6 rounded-3xl shadow-sm flex flex-col justify-between">
+          <div className="glass-panel p-4 sm:p-6 rounded-3xl shadow-sm flex flex-col justify-between">
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
                 สถิติสรุปความปลอดภัย
@@ -1027,7 +1029,7 @@ export default function EduSafeDashboard() {
           <div className="lg:col-span-5 space-y-6">
             
             {/* Incident report form */}
-            <div id="report-form" className="glass-panel p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+            <div id="report-form" className="glass-panel p-4 sm:p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <svg className="w-5.5 h-5.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -1197,7 +1199,7 @@ export default function EduSafeDashboard() {
             </div>
 
             {/* Quick Emergency Phone Directory */}
-            <div className="glass-panel p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
               <h3 className="text-md font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                 <svg className="w-5 h-5 text-rose-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                 สายตรงเบอร์ฉุกเฉินในและนอกโรงเรียน
@@ -1206,7 +1208,7 @@ export default function EduSafeDashboard() {
               <div className="space-y-2">
                 <a 
                   href="tel:054252000"
-                  className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 transition-colors font-medium text-xs"
+                  className="flex flex-wrap items-center justify-between p-3 rounded-xl bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 transition-colors font-medium text-xs gap-2"
                 >
                   <div className="flex items-center gap-2">
                     <span className="p-1.5 rounded-lg bg-rose-500 text-white">🚒</span>
@@ -1217,7 +1219,7 @@ export default function EduSafeDashboard() {
                 
                 <a 
                   href="tel:054266174"
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-zinc-900/60 dark:hover:bg-zinc-800/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 transition-colors font-medium text-xs"
+                  className="flex flex-wrap items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-zinc-900/60 dark:hover:bg-zinc-800/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 transition-colors font-medium text-xs gap-2"
                 >
                   <div className="flex items-center gap-2">
                     <span className="p-1.5 rounded-lg bg-slate-200 dark:bg-zinc-800">🏥</span>
@@ -1228,7 +1230,7 @@ export default function EduSafeDashboard() {
 
                 <a 
                   href="tel:054266191"
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-zinc-900/60 dark:hover:bg-zinc-800/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 transition-colors font-medium text-xs"
+                  className="flex flex-wrap items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-zinc-900/60 dark:hover:bg-zinc-800/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 transition-colors font-medium text-xs gap-2"
                 >
                   <div className="flex items-center gap-2">
                     <span className="p-1.5 rounded-lg bg-slate-200 dark:bg-zinc-800">👮</span>
@@ -1239,7 +1241,7 @@ export default function EduSafeDashboard() {
 
                 <a 
                   href="tel:1669"
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-zinc-900/60 dark:hover:bg-zinc-800/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 transition-colors font-medium text-xs"
+                  className="flex flex-wrap items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-zinc-900/60 dark:hover:bg-zinc-800/80 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 transition-colors font-medium text-xs gap-2"
                 >
                   <div className="flex items-center gap-2">
                     <span className="p-1.5 rounded-lg bg-slate-200 dark:bg-zinc-800">🚑</span>
@@ -1256,7 +1258,7 @@ export default function EduSafeDashboard() {
           <div className="lg:col-span-7 space-y-6">
             
             {/* Feed controller and Filters */}
-            <div className="glass-panel p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -1428,18 +1430,18 @@ export default function EduSafeDashboard() {
             <span className="text-sm font-bold text-slate-950 dark:text-white">EduSafe Portal</span>
           </div>
           <p className="text-xs text-slate-400 dark:text-zinc-500">
-            © {new Date().getFullYear()} EduSafe โรงเรียนพัฒนาเทคโนโลยีการกุศล. ลิขสิทธิ์ถูกต้อง. ดูแลความปลอดภัยตลอด 24 ชั่วโมง
+            © {new Date().getFullYear()} EduSafe วิทยาลัยเทคนิค กฟผ. แม่เมาะ. ลิขสิทธิ์ถูกต้อง. ดูแลความปลอดภัยตลอด 24 ชั่วโมง
           </p>
         </div>
       </footer>
 
       {/* DETAIL MODAL PANEL / OVERLAY */}
       {selectedReport && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
           <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-zinc-800 animate-scaleUp">
             
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-100 dark:border-zinc-800/80 bg-slate-50 dark:bg-zinc-950/50 flex justify-between items-start">
+            <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-zinc-800/80 bg-slate-50 dark:bg-zinc-950/50 flex justify-between items-start">
               <div>
                 <div className="flex flex-wrap gap-2 items-center text-xs mb-2">
                   <span className="font-mono font-bold text-slate-500 dark:text-zinc-400 bg-slate-200 dark:bg-zinc-800 px-2 py-0.5 rounded">
@@ -1463,10 +1465,10 @@ export default function EduSafeDashboard() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-6 max-h-[550px] overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 max-h-[75vh] sm:max-h-[550px] overflow-y-auto">
               
               {/* Incident Meta details */}
-              <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-zinc-950/40 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/60 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 bg-slate-50 dark:bg-zinc-950/40 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/60 text-xs">
                 <div>
                   <span className="text-slate-400 block font-semibold mb-0.5">📍 สถานที่เกิดเหตุ:</span>
                   <span className="text-slate-800 dark:text-zinc-200 font-bold">{LOCATION_MAP[selectedReport.location]}</span>
@@ -1608,7 +1610,7 @@ export default function EduSafeDashboard() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 bg-slate-50 dark:bg-zinc-950/60 border-t border-slate-100 dark:border-zinc-800/80 flex justify-end">
+            <div className="p-3 sm:p-4 bg-slate-50 dark:bg-zinc-950/60 border-t border-slate-100 dark:border-zinc-800/80 flex justify-end">
               <button
                 onClick={() => setSelectedReport(null)}
                 className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 text-xs font-bold transition-all"
@@ -1673,7 +1675,7 @@ export default function EduSafeDashboard() {
               </div>
 
               {/* Call school number direct dial */}
-              <div className="border-t border-slate-100 dark:border-zinc-800 pt-4 flex gap-3">
+              <div className="border-t border-slate-100 dark:border-zinc-800 pt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <a
                   href="tel:1669"
                   className="flex-1 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs text-center shadow-lg transition-all"
@@ -1682,7 +1684,7 @@ export default function EduSafeDashboard() {
                 </a>
                 <button
                   onClick={() => setShowSosModal(false)}
-                  className="px-4 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 text-xs font-semibold transition-all"
+                  className="py-3 px-4 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 text-xs font-semibold transition-all text-center"
                 >
                   ยกเลิกส่งสัญญาณ
                 </button>
