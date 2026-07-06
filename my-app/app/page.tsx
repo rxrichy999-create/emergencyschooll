@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 // Interfaces for our application state
 interface IncidentReport {
@@ -162,7 +164,9 @@ const INITIAL_REPORTS: IncidentReport[] = [
   }
 ];
 
-export default function EduSafeDashboard() {
+export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boolean }) {
+  const pathname = usePathname();
+  const isAdminRoute = defaultAdminMode || pathname?.startsWith('/admin') === true;
   const [reports, setReports] = useState<IncidentReport[]>([]);
   const [notifications, setNotifications] = useState<NotificationHistoryItem[]>([]);
   const [selectedReport, setSelectedReport] = useState<IncidentReport | null>(null);
@@ -185,7 +189,7 @@ export default function EduSafeDashboard() {
   const [mapLocationFilter, setMapLocationFilter] = useState<string>('all');
 
   // App Modes and UI controllers
-  const [isAdminMode, setIsAdminMode] = useState(false);
+  const isAdminMode = defaultAdminMode || isAdminRoute;
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [showSosModal, setShowSosModal] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'danger' | 'info' } | null>(null);
@@ -413,7 +417,7 @@ export default function EduSafeDashboard() {
         await fetchNotifications();
         showToast(`อัปเดตสถานะใบงานเป็น [${STATUS_MAP[newStatus].label}] เรียบร้อย`, 'success');
       } else {
-        showToast('ล้มเหลวในการเชื่อมต่อกับเซิร์ฟเวอร์หลังบ้าน', 'danger');
+        showToast(res.status === 401 ? 'เซสชันแอดมินหมดอายุ กรุณาเข้าสู่ระบบใหม่' : 'ล้มเหลวในการเชื่อมต่อกับเซิร์ฟเวอร์หลังบ้าน', 'danger');
       }
     } catch {
       showToast('ออฟไลน์: ไม่สามารถอัปเดตสถานะบนฐานข้อมูลส่วนกลางได้', 'danger');
@@ -434,7 +438,7 @@ export default function EduSafeDashboard() {
           await fetchNotifications();
           showToast('ลบรายการแจ้งเหตุสำเร็จ', 'info');
         } else {
-          showToast('ไม่สามารถลบรายการได้เนื่องจากขัดข้องทางเซิร์ฟเวอร์', 'danger');
+          showToast(res.status === 401 ? 'เซสชันแอดมินหมดอายุ กรุณาเข้าสู่ระบบใหม่' : 'ไม่สามารถลบรายการได้เนื่องจากขัดข้องทางเซิร์ฟเวอร์', 'danger');
         }
       } catch {
         showToast('ออฟไลน์: ไม่สามารถดำเนินการลบจากฐานข้อมูลได้', 'danger');
@@ -547,30 +551,35 @@ export default function EduSafeDashboard() {
               )}
             </button>
 
-            {/* Admin Toggle button */}
-            <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100 dark:bg-zinc-800 p-0.5 sm:p-1 rounded-xl">
-              <button
-                onClick={() => {
-                  setIsAdminMode(false);
-                  showToast('สลับเข้าโหมดผู้ใช้ทั่วไป (แจ้งเหตุ)', 'info');
-                }}
-                className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all ${!isAdminMode ? 'bg-white dark:bg-zinc-900 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-zinc-300'}`}
-              >
-                <span className="hidden min-[400px]:inline">ผู้ใช้ทั่วไป</span>
-                <span className="min-[400px]:hidden">ทั่วไป</span>
-              </button>
-              <button
-                onClick={() => {
-                  setIsAdminMode(true);
-                  showToast('สลับเข้าโหมดผู้ดูแลระบบ (ฝ่ายจัดการภัย)', 'info');
-                }}
-                className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all flex items-center gap-1 sm:gap-1.5 ${isAdminMode ? 'bg-gradient-to-r from-rose-600 to-orange-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 dark:hover:text-zinc-300'}`}
-              >
-                <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <span className="hidden min-[400px]:inline">ผู้ดูแลระบบ</span>
-                <span className="min-[400px]:hidden">แอดมิน</span>
-              </button>
-            </div>
+            {isAdminRoute ? (
+              <div className="flex items-center gap-2">
+                <span className="rounded-xl bg-gradient-to-r from-rose-600 to-orange-600 px-3 py-1.5 text-[10px] sm:text-xs font-bold text-white shadow-md">
+                  โหมดผู้ดูแลระบบ
+                </span>
+                <button
+                  onClick={async () => {
+                    await fetch('/api/admin/logout', { method: 'POST' });
+                    window.location.href = '/';
+                  }}
+                  className="rounded-xl bg-slate-100 px-3 py-1.5 text-[10px] sm:text-xs font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                >
+                  ออกจากระบบ
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline rounded-xl bg-emerald-50 px-3 py-1.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  ผู้ใช้ทั่วไป
+                </span>
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1 sm:gap-1.5 rounded-xl bg-slate-100 px-3 py-1.5 text-[10px] sm:text-xs font-semibold text-slate-600 transition hover:bg-slate-200 hover:text-slate-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                >
+                  <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 3l7 3v5c0 4.5-2.9 8.6-7 10-4.1-1.4-7-5.5-7-10V6l7-3z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4" /></svg>
+                  ผู้ดูแลระบบ
+                </Link>
+              </div>
+            )}
 
           </div>
         </div>
@@ -1698,5 +1707,9 @@ export default function EduSafeDashboard() {
 
     </div>
   );
+}
+
+export default function HomePage() {
+  return <EduSafeDashboard />;
 }
 

@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { appendNotification, readReports, writeReports } from '@/lib/db';
+import { isAdminRequest } from '@/lib/adminAuth';
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await request.json();
     const reports = readReports();
@@ -59,6 +64,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 401 });
+    }
+
     const { id } = await params;
     const reports = readReports();
     
