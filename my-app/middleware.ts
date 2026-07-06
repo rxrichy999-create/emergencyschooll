@@ -3,7 +3,6 @@ import { AUTH_COOKIE_NAME, parseSessionValue } from './lib/adminAuth';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = parseSessionValue(request.cookies.get(AUTH_COOKIE_NAME)?.value);
 
   if (pathname === '/admin/login') {
     return NextResponse.next();
@@ -12,6 +11,8 @@ export function middleware(request: NextRequest) {
   if (!pathname.startsWith('/admin')) {
     return NextResponse.next();
   }
+
+  const session = parseSessionValue(request.cookies.get(AUTH_COOKIE_NAME)?.value);
 
   if (session?.role === 'admin') {
     return NextResponse.next();

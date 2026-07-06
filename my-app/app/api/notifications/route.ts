@@ -2,18 +2,19 @@ import { NextResponse } from 'next/server';
 import { appendNotification, readNotifications } from '@/lib/db';
 
 export async function GET() {
-  const notifications = readNotifications();
-  const sorted = [...notifications].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-
-  return NextResponse.json(sorted);
+  try {
+    const notifications = await readNotifications();
+    return NextResponse.json(notifications);
+  } catch (error) {
+    console.error('API notifications GET error:', error);
+    return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const notification = appendNotification({
+    const notification = await appendNotification({
       reportId: body.reportId,
       type: body.type || 'system',
       title: body.title,

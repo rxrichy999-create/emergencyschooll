@@ -20,7 +20,8 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch {
-    return NextResponse.json({ error: 'Failed to login' }, { status: 400 });
+  } catch (error) {
+    console.error('Admin login configuration error:', error);
+    return NextResponse.json({ error: 'Authentication is not configured' }, { status: 500 });
   }
 }

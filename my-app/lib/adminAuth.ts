@@ -9,36 +9,28 @@ export interface AppAccount {
   displayName: string;
 }
 
-const DEFAULT_ACCOUNTS: AppAccount[] = [
-  {
-    username: 'user',
-    password: 'user123',
-    role: 'user',
-    displayName: 'ผู้ใช้ทั่วไป',
-  },
-  {
-    username: 'admin',
-    password: 'admin123',
-    role: 'admin',
-    displayName: 'ผู้ดูแลระบบ',
-  },
-];
-
 export function getAccounts() {
   if (!process.env.AUTH_ACCOUNTS) {
-    return DEFAULT_ACCOUNTS;
+    throw new Error('Missing AUTH_ACCOUNTS');
   }
 
   try {
     const accounts = JSON.parse(process.env.AUTH_ACCOUNTS) as AppAccount[];
-    return accounts.length > 0 ? accounts : DEFAULT_ACCOUNTS;
+    if (accounts.length === 0) {
+      throw new Error('AUTH_ACCOUNTS must contain at least one account');
+    }
+    return accounts;
   } catch {
-    return DEFAULT_ACCOUNTS;
+    throw new Error('Invalid AUTH_ACCOUNTS JSON');
   }
 }
 
 function getSessionSecret() {
-  return process.env.AUTH_SESSION_SECRET || 'local-dev-session';
+  if (!process.env.AUTH_SESSION_SECRET) {
+    throw new Error('Missing AUTH_SESSION_SECRET');
+  }
+
+  return process.env.AUTH_SESSION_SECRET;
 }
 
 export function authenticate(username: string, password: string, role?: UserRole) {
@@ -62,7 +54,16 @@ export function createSessionValue(account: Pick<AppAccount, 'username' | 'role'
 export function parseSessionValue(value: string | undefined) {
   if (!value) return null;
 
-  const [username, role, displayName, secret] = decodeURIComponent(value).split('|');
+  let username = '';
+  let role = '';
+  let displayName = '';
+  let secret = '';
+
+  try {
+    [username, role, displayName, secret] = decodeURIComponent(value).split('|');
+  } catch {
+    return null;
+  }
 
   if (secret !== getSessionSecret() || (role !== 'user' && role !== 'admin')) {
     return null;

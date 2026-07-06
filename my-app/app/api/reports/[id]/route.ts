@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { appendNotification, readReports, writeReports } from '@/lib/db';
+import { appendNotification, deleteReport, readReports, updateReport } from '@/lib/db';
 import { isAdminRequest } from '@/lib/adminAuth';
 
 export async function PATCH(
@@ -13,7 +13,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const reports = readReports();
+    const reports = await readReports();
     
     const index = reports.findIndex(r => r.id === id);
     if (index === -1) {
@@ -40,19 +40,18 @@ export async function PATCH(
       });
     }
     
-    reports[index] = report;
-    writeReports(reports);
+    const updatedReport = await updateReport(report);
 
-    appendNotification({
-      reportId: report.id,
+    await appendNotification({
+      reportId: updatedReport.id,
       type: 'status_updated',
       title: 'อัปเดตสถานะรายงานเหตุ',
-      message: `${report.id}: ${previousStatus} -> ${report.status}${body.adminNotes ? ` (${body.adminNotes})` : ''}`,
-      urgency: report.urgency,
-      status: report.status,
+      message: `${updatedReport.id}: ${previousStatus} -> ${updatedReport.status}${body.adminNotes ? ` (${body.adminNotes})` : ''}`,
+      urgency: updatedReport.urgency,
+      status: updatedReport.status,
     });
     
-    return NextResponse.json(report);
+    return NextResponse.json(updatedReport);
   } catch (error) {
     console.error('API PATCH error:', error);
     return NextResponse.json({ error: 'Failed to update report' }, { status: 400 });
@@ -69,23 +68,19 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const reports = readReports();
-    
-    const deletedReport = reports.find(r => r.id === id);
-    const filtered = reports.filter(r => r.id !== id);
-    if (reports.length === filtered.length) {
+    const deletedReport = await deleteReport(id);
+
+    if (!deletedReport) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
-    
-    writeReports(filtered);
 
-    appendNotification({
-      reportId: deletedReport?.id,
+    await appendNotification({
+      reportId: deletedReport.id,
       type: 'report_deleted',
       title: 'ลบรายงานเหตุ',
-      message: deletedReport ? `${deletedReport.id}: ${deletedReport.title}` : `ลบรายงาน ${id}`,
-      urgency: deletedReport?.urgency,
-      status: deletedReport?.status,
+      message: `${deletedReport.id}: ${deletedReport.title}`,
+      urgency: deletedReport.urgency,
+      status: deletedReport.status,
     });
 
     return NextResponse.json({ success: true });

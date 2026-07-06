@@ -1,18 +1,20 @@
 import { NextResponse } from 'next/server';
-import { appendNotification, readReports, writeReports, IncidentReport } from '@/lib/db';
+import { appendNotification, createReport, readReports, IncidentReport } from '@/lib/db';
+import { sendLineAlert, shouldSendLineAlert } from '@/lib/lineNotify';
 
 export async function GET() {
-  const reports = readReports();
-  // Sort reports by timestamp descending (newest first)
-  const sorted = [...reports].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  return NextResponse.json(sorted);
+  try {
+    const reports = await readReports();
+    return NextResponse.json(reports);
+  } catch (error) {
+    console.error('API GET reports error:', error);
+    return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const reports = readReports();
-    
     const newReport: IncidentReport = {
       id: body.id || `REP-${Math.floor(100 + Math.random() * 900)}`,
       title: body.title,
@@ -30,20 +32,27 @@ export async function POST(request: Request) {
         { status: 'pending', time: new Date().toISOString(), note: 'สร้างรายงานเข้าระบบสำเร็จ' }
       ]
     };
-    
-    reports.unshift(newReport);
-    writeReports(reports);
 
-    appendNotification({
-      reportId: newReport.id,
-      type: newReport.id.startsWith('SOS-') ? 'sos_triggered' : 'report_created',
-      title: newReport.id.startsWith('SOS-') ? 'แจ้งเตือน SOS ใหม่' : 'รับรายงานเหตุใหม่',
-      message: `${newReport.id}: ${newReport.title}`,
-      urgency: newReport.urgency,
-      status: newReport.status,
+    const savedReport = await createReport(newReport);
+
+    await appendNotification({
+      reportId: savedReport.id,
+      type: savedReport.id.startsWith('SOS-') ? 'sos_triggered' : 'report_created',
+      title: savedReport.id.startsWith('SOS-') ? 'แจ้งเตือน SOS ใหม่' : 'รับรายงานเหตุใหม่',
+      message: `${savedReport.id}: ${savedReport.title}`,
+      urgency: savedReport.urgency,
+      status: savedReport.status,
     });
+
+    if (shouldSendLineAlert(savedReport)) {
+      try {
+        await sendLineAlert(savedReport);
+      } catch (lineError) {
+        console.error('LINE alert error:', lineError);
+      }
+    }
     
-    return NextResponse.json(newReport, { status: 201 });
+    return NextResponse.json(savedReport, { status: 201 });
   } catch (error) {
     console.error('API POST error:', error);
     return NextResponse.json({ error: 'Failed to process request' }, { status: 400 });

@@ -1,11 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-// Define the path to our JSON file database
-const DB_PATH = path.join(process.cwd(), 'data', 'reports.json');
-const NOTIFICATIONS_DB_PATH = path.join(process.cwd(), 'data', 'notifications.json');
-
-// Interface definition matching the frontend
 export interface IncidentReport {
   id: string;
   title: string;
@@ -17,7 +11,7 @@ export interface IncidentReport {
   reporterName: string;
   reporterPhone: string;
   isAnonymous: boolean;
-  timestamp: string; // Stored as ISO string in JSON
+  timestamp: string;
   status: 'pending' | 'investigating' | 'resolved';
   adminNotes?: string;
   timeline: {
@@ -38,163 +32,204 @@ export interface NotificationHistoryItem {
   createdAt: string;
 }
 
-// Initial seed data representing EGAT Mae Moh Technical College
-const SEED_REPORTS: IncidentReport[] = [
-  {
-    id: 'REP-001',
-    title: 'นักศึกษาลื่นล้มข้อเท้าแพลงที่ลานกีฬาพละ',
-    category: 'accident',
-    urgency: 'high',
-    location: 'sports_complex',
-    specificLocation: 'สนามบาสเกตบอลกลางแจ้ง ข้างโรงฝึกงานช่างยนต์',
-    description: 'ระหว่างวิชาพละศึกษา นักศึกษาชั้น ปวช.2 สาขาช่างยนต์ ลื่นเสียหลักล้มกระแทกพื้นปูน คาดว่าข้อเท้าแพลงร้ายแรงไม่สามารถลงน้ำหนักได้ อาจารย์ผู้สอนกำลังทำการประคบเย็นเบื้องต้น ต้องการรถเข็นนำส่งห้องพยาบาลหลัก หรือประสานงานกู้ภัยส่งต่อ รพ.แม่เมาะ ด่วนครับ',
-    reporterName: 'นายณรงค์ ศักดิ์ดี (อาจารย์พละ)',
-    reporterPhone: '081-234-5678',
-    isAnonymous: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    status: 'investigating',
-    adminNotes: 'รับแจ้งประสานงานแล้ว งานพยาบาลวิทยาลัยได้นำเปลสนามไปรับตัวนักศึกษาแล้วเพื่อตรวจดูอาการและประคบน้ำแข็ง หากจำเป็นจะประสานรถพยาบาล กฟผ. แม่เมาะ หรือกู้ภัยนำส่ง รพ.แม่เมาะ ทันที',
-    timeline: [
-      { status: 'pending', time: new Date(Date.now() - 1000 * 60 * 15).toISOString(), note: 'ส่งรายงานเข้าสู่ระบบโดยครูผู้สอน' },
-      { status: 'investigating', time: new Date(Date.now() - 1000 * 60 * 10).toISOString(), note: 'งานพยาบาลรับทราบเรื่อง และส่งทีมปฐมพยาบาลวิทยาลัยเข้าพื้นที่' }
-    ]
-  },
-  {
-    id: 'REP-002',
-    title: 'ก๊อกน้ำรั่วไหลไม่หยุดบริเวณอ่างล้างมือชำรุด',
-    category: 'damage',
-    urgency: 'low',
-    location: 'cafeteria',
-    specificLocation: 'อ่างน้ำล้างมือหน้าโรงอาหารวิทยาลัย',
-    description: 'ก๊อกน้ำตัวที่ 3 ตรงอ่างล้างมือก่อนเข้าโรงอาหารชำรุดปิดไม่สนิท น้ำรั่วพุ่งกระจายและไหลนองเต็มพื้นทางเดิน นักศึกษาเดินผ่านไปมาเสี่ยงต่อการลื่นล้มได้ อยากให้ช่างซ่อมบำรุงวิทยาลัยมาช่วยปิดวาล์วและเปลี่ยนตัวใหม่ด่วนครับ',
-    reporterName: 'นายอภิชาต พลอยดี (ปวส.1)',
-    reporterPhone: '',
-    isAnonymous: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-    status: 'resolved',
-    adminNotes: 'ฝ่ายงานซ่อมบำรุงและอาคารสถานที่ได้ส่งเจ้าหน้าที่เข้าดำเนินการปิดวาล์วน้ำหลัก เปลี่ยนหัวก๊อกใหม่ และเช็ดพื้นรอบๆ ให้แห้งสนิทเรียบร้อยแล้วเพื่อความปลอดภัย',
-    timeline: [
-      { status: 'pending', time: new Date(Date.now() - 1000 * 60 * 120).toISOString(), note: 'นักศึกษาแจ้งรายงานเข้าระบบแบบไม่เปิดเผยตัวตน' },
-      { status: 'investigating', time: new Date(Date.now() - 1000 * 60 * 95).toISOString(), note: 'หัวหน้างานอาคารสถานที่รับเรื่องและมอบหมายงานให้ทีมช่างบำรุงวิทยาลัย' },
-      { status: 'resolved', time: new Date(Date.now() - 1000 * 60 * 45).toISOString(), note: 'ช่างวิทยาลัยเข้าแก้ไขและเปลี่ยนอุปกรณ์ชิ้นใหม่สำเร็จ' }
-    ]
-  },
-  {
-    id: 'REP-003',
-    title: 'พบกลิ่นเหม็นไหม้คล้ายสายไฟร้อนเกินในห้องเรียนคอมพิวเตอร์',
-    category: 'damage',
-    urgency: 'medium',
-    location: 'auditorium',
-    specificLocation: 'อาคารวิทยบริการ ชั้น 2 ห้องคอมพิวเตอร์ 203',
-    description: 'มีกลิ่นเหม็นไหม้ของพลาสติกและสายไฟร้อนเกินบริเวณหลังเครื่องสำรองไฟ (UPS) ตัวใหญ่ประจำห้องเรียนคอมพิวเตอร์ คณะครูเวรประสานงานปิดระบบเบรกเกอร์ห้องคอมพิวเตอร์ชั่วคราวเพื่อความปลอดภัย และรอช่างวิทยาลัยเข้าสแกนระบบไฟฟ้าในอาคาร',
-    reporterName: 'นางสาวจารุวรรณ แก้วใส (ครูเวรประจำตึก)',
-    reporterPhone: '089-987-6543',
-    isAnonymous: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 300).toISOString(),
-    status: 'pending',
-    timeline: [
-      { status: 'pending', time: new Date(Date.now() - 1000 * 60 * 300).toISOString(), note: 'รายงานบันทึกเข้าสู่ระบบโดยครูเวรวิทยบริการ' }
-    ]
-  },
-  {
-    id: 'REP-004',
-    title: 'พบกลุ่มควันหนาแน่นเนื่องจากหญ้าแห้งติดไฟใกล้หม้อแปลงไฟฟ้าหลังโรงงานฝึกงาน',
-    category: 'disaster',
-    urgency: 'critical',
-    location: 'building_b',
-    specificLocation: 'บริเวณหลังโรงฝึกงานแผนกช่างไฟฟ้าและอิเล็กทรอนิกส์',
-    description: 'เกิดประกายไฟจากเศษใบไม้และหญ้าแห้งสะสมใกล้แนวรั้วสถานีจ่ายไฟย่อยและหม้อแปลงทดสอบของแผนกช่างไฟฟ้า มีกลุ่มควันหนาแน่นลอยเข้ามาในพื้นที่โรงฝึกงาน อาจารย์และนักเรียนได้นำถังดับเพลิงเคมีแห้งฉีดระงับความร้อนสะสมเบื้องต้นเรียบร้อยแล้ว ปัจจุบันปลอดภัยดีแต่ขอให้เจ้าหน้าที่เซฟตี้วิทยาลัยและฝ่ายดับเพลิง กฟผ. แม่เมาะ เข้าร่วมสแกนระบบและประเมินความปลอดภัยระบบไฟอีกครั้ง',
-    reporterName: 'เจ้าหน้าที่ความปลอดภัยห้องปฏิบัติการไฟฟ้า',
-    reporterPhone: '085-555-4321',
-    isAnonymous: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 1440).toISOString(),
-    status: 'resolved',
-    adminNotes: 'ทีมเทคนิคและไฟฟ้าวิทยาลัย ร่วมกับเจ้าหน้าที่ดับเพลิง กฟผ. แม่เมาะ ได้เข้าตรวจสอบจุดเกิดเหตุ ทำแนวกันไฟ กำจัดวัชพืชแห้งรอบรั้วสถานีทดสอบ และเปลี่ยนฟิวส์แรงสูงที่ได้รับความร้อนชำรุดเรียบร้อย ยืนยันความปลอดภัย',
-    timeline: [
-      { status: 'pending', time: new Date(Date.now() - 1000 * 60 * 1440).toISOString(), note: 'ระบบตรวจพบควันไฟ ส่งสัญญาณ SOS ด่วนไปยังศูนย์ความปลอดภัย' },
-      { status: 'investigating', time: new Date(Date.now() - 1000 * 60 * 1435).toISOString(), note: 'ทีมระงับอัคคีภัยแผนกช่างและหน่วยดับเพลิง กฟผ. เข้าพื้นที่คุมสถานการณ์' },
-      { status: 'resolved', time: new Date(Date.now() - 1000 * 60 * 1200).toISOString(), note: 'ทำแนวกันไฟ กำจัดวัชพืชแห้ง และซ่อมบำรุงระบบจ่ายไฟเสร็จสิ้น' }
-    ]
+type ReportRow = {
+  id: string;
+  title: string;
+  category: IncidentReport['category'];
+  urgency: IncidentReport['urgency'];
+  location: IncidentReport['location'];
+  specific_location: string;
+  description: string;
+  reporter_name: string;
+  reporter_phone: string | null;
+  is_anonymous: boolean;
+  timestamp: string;
+  status: IncidentReport['status'];
+  admin_notes: string | null;
+  timeline: IncidentReport['timeline'];
+};
+
+type NotificationRow = {
+  id: string;
+  report_id: string | null;
+  type: NotificationHistoryItem['type'];
+  title: string;
+  message: string;
+  urgency: IncidentReport['urgency'] | null;
+  status: IncidentReport['status'] | null;
+  created_at: string;
+};
+
+function getSupabase() {
+  const url = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !serviceRoleKey) {
+    throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
   }
-];
 
-export function readReports(): IncidentReport[] {
-  try {
-    // Ensure the folder exists
-    const dir = path.dirname(DB_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    // Read or initialize JSON
-    if (!fs.existsSync(DB_PATH)) {
-      fs.writeFileSync(DB_PATH, JSON.stringify(SEED_REPORTS, null, 2), 'utf-8');
-      return SEED_REPORTS;
-    }
-
-    const content = fs.readFileSync(DB_PATH, 'utf-8');
-    return JSON.parse(content);
-  } catch (error) {
-    console.error('Database read error, falling back to mock:', error);
-    return SEED_REPORTS;
-  }
+  return createClient(url, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
 }
 
-export function writeReports(reports: IncidentReport[]): void {
-  try {
-    const dir = path.dirname(DB_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(DB_PATH, JSON.stringify(reports, null, 2), 'utf-8');
-  } catch (error) {
-    console.error('Database write error:', error);
-  }
+function toReport(row: ReportRow): IncidentReport {
+  return {
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    urgency: row.urgency,
+    location: row.location,
+    specificLocation: row.specific_location,
+    description: row.description,
+    reporterName: row.reporter_name,
+    reporterPhone: row.reporter_phone || '',
+    isAnonymous: row.is_anonymous,
+    timestamp: row.timestamp,
+    status: row.status,
+    adminNotes: row.admin_notes || undefined,
+    timeline: row.timeline || [],
+  };
 }
 
-export function readNotifications(): NotificationHistoryItem[] {
-  try {
-    const dir = path.dirname(NOTIFICATIONS_DB_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    if (!fs.existsSync(NOTIFICATIONS_DB_PATH)) {
-      fs.writeFileSync(NOTIFICATIONS_DB_PATH, JSON.stringify([], null, 2), 'utf-8');
-      return [];
-    }
-
-    const content = fs.readFileSync(NOTIFICATIONS_DB_PATH, 'utf-8');
-    return JSON.parse(content);
-  } catch (error) {
-    console.error('Notifications read error:', error);
-    return [];
-  }
+function toReportRow(report: IncidentReport): ReportRow {
+  return {
+    id: report.id,
+    title: report.title,
+    category: report.category,
+    urgency: report.urgency,
+    location: report.location,
+    specific_location: report.specificLocation,
+    description: report.description,
+    reporter_name: report.reporterName,
+    reporter_phone: report.reporterPhone || null,
+    is_anonymous: report.isAnonymous,
+    timestamp: report.timestamp,
+    status: report.status,
+    admin_notes: report.adminNotes || null,
+    timeline: report.timeline,
+  };
 }
 
-export function writeNotifications(notifications: NotificationHistoryItem[]): void {
-  try {
-    const dir = path.dirname(NOTIFICATIONS_DB_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(NOTIFICATIONS_DB_PATH, JSON.stringify(notifications, null, 2), 'utf-8');
-  } catch (error) {
-    console.error('Notifications write error:', error);
-  }
+function toNotification(row: NotificationRow): NotificationHistoryItem {
+  return {
+    id: row.id,
+    reportId: row.report_id || undefined,
+    type: row.type,
+    title: row.title,
+    message: row.message,
+    urgency: row.urgency || undefined,
+    status: row.status || undefined,
+    createdAt: row.created_at,
+  };
 }
 
-export function appendNotification(
+export async function readReports(): Promise<IncidentReport[]> {
+  const { data, error } = await getSupabase()
+    .from('reports')
+    .select('*')
+    .order('timestamp', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data || []) as ReportRow[]).map(toReport);
+}
+
+export async function createReport(report: IncidentReport): Promise<IncidentReport> {
+  const { data, error } = await getSupabase()
+    .from('reports')
+    .insert(toReportRow(report))
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return toReport(data as ReportRow);
+}
+
+export async function updateReport(report: IncidentReport): Promise<IncidentReport> {
+  const { data, error } = await getSupabase()
+    .from('reports')
+    .update(toReportRow(report))
+    .eq('id', report.id)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return toReport(data as ReportRow);
+}
+
+export async function deleteReport(id: string): Promise<IncidentReport | null> {
+  const { data: existing, error: readError } = await getSupabase()
+    .from('reports')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (readError) {
+    throw readError;
+  }
+
+  if (!existing) {
+    return null;
+  }
+
+  const { error } = await getSupabase().from('reports').delete().eq('id', id);
+
+  if (error) {
+    throw error;
+  }
+
+  return toReport(existing as ReportRow);
+}
+
+export async function readNotifications(): Promise<NotificationHistoryItem[]> {
+  const { data, error } = await getSupabase()
+    .from('notifications')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data || []) as NotificationRow[]).map(toNotification);
+}
+
+export async function appendNotification(
   notification: Omit<NotificationHistoryItem, 'id' | 'createdAt'>
-): NotificationHistoryItem {
-  const notifications = readNotifications();
-  const newNotification: NotificationHistoryItem = {
-    ...notification,
+): Promise<NotificationHistoryItem> {
+  const row: NotificationRow = {
     id: `NTF-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
-    createdAt: new Date().toISOString(),
+    report_id: notification.reportId || null,
+    type: notification.type,
+    title: notification.title,
+    message: notification.message,
+    urgency: notification.urgency || null,
+    status: notification.status || null,
+    created_at: new Date().toISOString(),
   };
 
-  notifications.unshift(newNotification);
-  writeNotifications(notifications.slice(0, 200));
-  return newNotification;
+  const { data, error } = await getSupabase()
+    .from('notifications')
+    .insert(row)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return toNotification(data as NotificationRow);
 }

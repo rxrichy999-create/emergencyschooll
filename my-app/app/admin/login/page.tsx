@@ -6,8 +6,8 @@ import { FormEvent, Suspense, useState } from 'react';
 
 function AdminLoginForm() {
   const searchParams = useSearchParams();
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const nextPath = searchParams.get('next') || '/admin';
