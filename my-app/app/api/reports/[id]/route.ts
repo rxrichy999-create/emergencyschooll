@@ -27,7 +27,11 @@ export async function PATCH(
     if (body.status) report.status = body.status;
     if (body.adminNotes !== undefined) report.adminNotes = body.adminNotes;
     
-    if (body.timeline) {
+    if (!Array.isArray(report.timeline)) {
+      report.timeline = [];
+    }
+
+    if (Array.isArray(body.timeline)) {
       report.timeline = body.timeline;
     } else if (body.status || body.adminNotes) {
       // Append a timeline log automatically
@@ -54,7 +58,8 @@ export async function PATCH(
     return NextResponse.json(updatedReport);
   } catch (error) {
     console.error('API PATCH error:', error);
-    return NextResponse.json({ error: 'Failed to update report' }, { status: 400 });
+    const message = error instanceof Error ? error.message : 'Failed to update report';
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }
 
@@ -75,7 +80,6 @@ export async function DELETE(
     }
 
     await appendNotification({
-      reportId: deletedReport.id,
       type: 'report_deleted',
       title: 'ลบรายงานเหตุ',
       message: `${deletedReport.id}: ${deletedReport.title}`,
@@ -86,6 +90,7 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('API DELETE error:', error);
-    return NextResponse.json({ error: 'Failed to delete report' }, { status: 400 });
+    const message = error instanceof Error ? error.message : 'Failed to delete report';
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

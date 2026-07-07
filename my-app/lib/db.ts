@@ -5,7 +5,7 @@ export interface IncidentReport {
   title: string;
   category: 'accident' | 'bullying' | 'disaster' | 'damage' | 'substance' | 'other';
   urgency: 'low' | 'medium' | 'high' | 'critical';
-  location: 'building_a' | 'building_b' | 'cafeteria' | 'sports_complex' | 'auditorium' | 'other';
+  location: 'building_a' | 'building_b' | 'digital_business' | 'accounting' | 'cafeteria' | 'sports_complex' | 'auditorium' | 'other';
   specificLocation: string;
   description: string;
   reporterName: string;

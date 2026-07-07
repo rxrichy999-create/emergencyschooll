@@ -3,6 +3,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "SafeMaeMoh",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/mae-moh-logo.png",
+  },
   description: "ระบบรายงานเหตุและจัดการความปลอดภัย วิทยาลัยเทคนิค กฟผ. แม่เมาะ",
 };
 

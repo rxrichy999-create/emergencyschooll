@@ -25,6 +25,7 @@ AUTH_SESSION_SECRET=
 AUTH_ACCOUNTS=
 LINE_CHANNEL_ACCESS_TOKEN=
 LINE_TO_ID=
+LINE_GROUP_ID=
 ```
 
 `AUTH_ACCOUNTS` เป็น JSON array และต้องมีอย่างน้อย 1 บัญชี role `admin` เช่น:
@@ -93,7 +94,7 @@ create index if not exists notifications_created_at_idx on notifications (create
 1. เข้า LINE Developers Console
 2. สร้าง Provider และ Messaging API channel หรือเปิดใช้ Messaging API ให้ LINE Official Account
 3. คัดลอก Channel access token ใส่ `LINE_CHANNEL_ACCESS_TOKEN`
-4. ใส่ปลายทางใน `LINE_TO_ID`
+4. ใส่ปลายทางใน `LINE_TO_ID` หรือ `LINE_GROUP_ID`
    - userId สำหรับส่งหาแอดมิน 1 คน
    - groupId สำหรับส่งเข้ากลุ่ม
    - roomId สำหรับส่งเข้าห้องแชทหลายคน

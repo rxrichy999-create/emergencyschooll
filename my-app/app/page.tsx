@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -10,7 +11,7 @@ interface IncidentReport {
   title: string;
   category: 'accident' | 'bullying' | 'disaster' | 'damage' | 'substance' | 'other';
   urgency: 'low' | 'medium' | 'high' | 'critical';
-  location: 'building_a' | 'building_b' | 'cafeteria' | 'sports_complex' | 'auditorium' | 'other';
+  location: 'building_a' | 'building_b' | 'digital_business' | 'accounting' | 'cafeteria' | 'sports_complex' | 'auditorium' | 'other';
   specificLocation: string;
   description: string;
   reporterName: string;
@@ -46,11 +47,10 @@ type ApiNotificationHistoryItem = Omit<NotificationHistoryItem, 'createdAt'> & {
   createdAt: string;
 };
 
-let clientIdSequence = 0;
-
 const createClientId = (prefix: 'REP' | 'SOS') => {
-  clientIdSequence += 1;
-  return `${prefix}-${String(clientIdSequence).padStart(3, '0')}`;
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `${prefix}-${timestamp}-${random}`;
 };
 
 const CATEGORY_MAP = {
@@ -78,6 +78,8 @@ const STATUS_MAP = {
 const LOCATION_MAP = {
   building_a: 'อาคารอำนวยการ',
   building_b: 'อาคารเรียน & โรงฝึกงานช่าง',
+  digital_business: 'อาคารเรียน เทคโนโลยีธุรกิจดิจิทัล',
+  accounting: 'อาคารเรียน บัญชี',
   cafeteria: 'โรงอาหารและอาคารกิจกรรม',
   sports_complex: 'สนามกีฬา & ลานกิจกรรม',
   auditorium: 'อาคารวิทยบริการ (หอประชุม/ห้องสมุด)',
@@ -192,6 +194,7 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
   const isAdminMode = defaultAdminMode || isAdminRoute;
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [showSosModal, setShowSosModal] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'danger' | 'info' } | null>(null);
   const [adminNoteInput, setAdminNoteInput] = useState('');
 
@@ -229,6 +232,15 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
       }
     } catch {
       setNotifications([]);
+    }
+  };
+
+  const getApiErrorMessage = async (res: Response, fallback: string) => {
+    try {
+      const data = (await res.json()) as { error?: string };
+      return data.error || fallback;
+    } catch {
+      return fallback;
     }
   };
 
@@ -417,7 +429,8 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
         await fetchNotifications();
         showToast(`อัปเดตสถานะใบงานเป็น [${STATUS_MAP[newStatus].label}] เรียบร้อย`, 'success');
       } else {
-        showToast(res.status === 401 ? 'เซสชันแอดมินหมดอายุ กรุณาเข้าสู่ระบบใหม่' : 'ล้มเหลวในการเชื่อมต่อกับเซิร์ฟเวอร์หลังบ้าน', 'danger');
+        const errorMessage = await getApiErrorMessage(res, 'ล้มเหลวในการเชื่อมต่อกับเซิร์ฟเวอร์หลังบ้าน');
+        showToast(res.status === 401 ? 'เซสชันแอดมินหมดอายุ กรุณาเข้าสู่ระบบใหม่' : errorMessage, 'danger');
       }
     } catch {
       showToast('ออฟไลน์: ไม่สามารถอัปเดตสถานะบนฐานข้อมูลส่วนกลางได้', 'danger');
@@ -505,10 +518,14 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
           
           {/* Logo Brand */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white shadow-lg shadow-rose-500/30 flex-shrink-0">
-              <svg className="h-5.5 w-5.5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-              </svg>
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-white ring-1 ring-slate-200 shadow-sm overflow-hidden flex-shrink-0 dark:bg-zinc-900 dark:ring-zinc-800">
+              <Image
+                src="/mae-moh-logo.png"
+                alt="วิทยาลัยเทคนิค กฟผ. แม่เมาะ"
+                width={56}
+                height={56}
+                className="h-full w-full object-contain"
+              />
             </div>
             <div>
               <h1 className="text-base sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -584,6 +601,61 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
           </div>
         </div>
       </header>
+
+      {showWelcomePopup && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 backdrop-blur-sm px-4 py-6 animate-fadeIn">
+          <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10">
+            <button
+              type="button"
+              onClick={() => setShowWelcomePopup(false)}
+              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white ring-1 ring-white/40 transition hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white/70"
+              aria-label="ปิดหน้าต่างประกาศ"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <Image
+              src="/welcome-popup.png"
+              alt="ประกาศสถิตในดวงใจตราบนิรันดร์"
+              width={1160}
+              height={1396}
+              className="max-h-[88vh] w-full object-contain"
+              priority
+            />
+            <div className="hidden absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(244,63,94,0.28),transparent_38%),linear-gradient(145deg,rgba(15,23,42,0.94),rgba(2,6,23,1))]" />
+            <div className="hidden relative px-6 pb-6 pt-10 text-center">
+              <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-white p-2 shadow-xl ring-4 ring-white/15">
+                <Image
+                  src="/mae-moh-logo.png"
+                  alt="วิทยาลัยเทคนิค กฟผ. แม่เมาะ"
+                  width={96}
+                  height={96}
+                  className="h-full w-full object-contain"
+                  priority
+                />
+              </div>
+
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-200">SafeMaeMoh</p>
+              <h2 className="mt-2 text-2xl font-extrabold tracking-tight">ระบบความปลอดภัยวิทยาลัย</h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                ระบบรายงานเหตุและประสานงานความปลอดภัย วิทยาลัยเทคนิค กฟผ. แม่เมาะ
+              </p>
+              <div className="mt-5 rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-left text-xs leading-relaxed text-slate-200">
+                หากพบเหตุฉุกเฉินให้กดปุ่ม SOS หรือกรอกรายงานเหตุทั่วไป ระบบจะส่งข้อมูลไปยังผู้ดูแลเพื่อดำเนินการทันที
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowWelcomePopup(false)}
+                className="mt-6 w-full rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-950 shadow-lg transition hover:bg-slate-100"
+              >
+                เริ่มใช้งาน
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Body */}
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -874,6 +946,53 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
                     )}
                   </g>
 
+                  {/* Digital Business Technology Building */}
+                  <g
+                    className="cursor-pointer group transition-all"
+                    onClick={() => {
+                      setMapLocationFilter('digital_business');
+                      showToast('กรองเฉพาะข้อมูล: อาคารเรียน เทคโนโลยีธุรกิจดิจิทัล', 'info');
+                    }}
+                  >
+                    <rect
+                      x="285" y="75" width="150" height="95" rx="15"
+                      fill={mapLocationFilter === 'digital_business' ? 'rgba(79, 70, 229, 0.2)' : 'rgba(30, 41, 59, 0.05)'}
+                      stroke={mapLocationFilter === 'digital_business' ? '#4f46e5' : '#94a3b8'}
+                      strokeWidth={mapLocationFilter === 'digital_business' ? '3' : '1.5'}
+                      className="group-hover:fill-slate-300/40 dark:group-hover:fill-zinc-800/40 transition-colors"
+                    />
+                    <rect x="315" y="101" width="90" height="42" rx="5" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400 opacity-40" />
+                    <path d="M 340 153 H 380" stroke="currentColor" strokeWidth="5" strokeLinecap="round" className="text-slate-400 opacity-30" />
+                    <text x="360" y="58" textAnchor="middle" className="fill-slate-600 dark:fill-zinc-300 text-sm font-semibold">เทคโนโลยีธุรกิจดิจิทัล</text>
+
+                    {reports.some(r => r.location === 'digital_business' && r.status !== 'resolved') && (
+                      <circle cx="360" cy="123" r="8" className="fill-blue-500 animate-ping" />
+                    )}
+                  </g>
+
+                  {/* Accounting Building */}
+                  <g
+                    className="cursor-pointer group transition-all"
+                    onClick={() => {
+                      setMapLocationFilter('accounting');
+                      showToast('กรองเฉพาะข้อมูล: อาคารเรียน บัญชี', 'info');
+                    }}
+                  >
+                    <rect
+                      x="310" y="350" width="140" height="70" rx="15"
+                      fill={mapLocationFilter === 'accounting' ? 'rgba(79, 70, 229, 0.2)' : 'rgba(30, 41, 59, 0.05)'}
+                      stroke={mapLocationFilter === 'accounting' ? '#4f46e5' : '#94a3b8'}
+                      strokeWidth={mapLocationFilter === 'accounting' ? '3' : '1.5'}
+                      className="group-hover:fill-slate-300/40 dark:group-hover:fill-zinc-800/40 transition-colors"
+                    />
+                    <path d="M 340 370 H 420 M 340 390 H 420 M 340 410 H 395" stroke="currentColor" strokeWidth="5" strokeLinecap="round" className="text-slate-400 opacity-30" />
+                    <text x="380" y="340" textAnchor="middle" className="fill-slate-600 dark:fill-zinc-300 text-sm font-semibold">อาคารเรียน บัญชี</text>
+
+                    {reports.some(r => r.location === 'accounting' && r.status !== 'resolved') && (
+                      <circle cx="380" cy="385" r="8" className="fill-emerald-500 animate-ping" />
+                    )}
+                  </g>
+
                   {/* Cafeteria */}
                   <g 
                     className="cursor-pointer group transition-all"
@@ -1114,6 +1233,8 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
                     >
                       <option value="building_a">🏫 อาคารอำนวยการ</option>
                       <option value="building_b">🏫 อาคารเรียน & โรงฝึกงานช่าง (ช่างยนต์/ช่างไฟ/ช่างกล)</option>
+                      <option value="digital_business">💻 อาคารเรียน เทคโนโลยีธุรกิจดิจิทัล</option>
+                      <option value="accounting">📊 อาคารเรียน บัญชี</option>
                       <option value="cafeteria">🍜 โรงอาหารและอาคารกิจกรรม</option>
                       <option value="sports_complex">🏀 สนามกีฬา & ลานกิจกรรมกลางแจ้ง</option>
                       <option value="auditorium">📚 อาคารวิทยบริการ (หอประชุม/ห้องสมุด)</option>
@@ -1258,6 +1379,42 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
                   </div>
                   <span className="font-bold font-mono">1669</span>
                 </a>
+
+                <div className="flex flex-col sm:flex-row gap-3 p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-semibold text-xs">
+                      <span className="p-1.5 rounded-lg bg-emerald-500 text-white">LINE</span>
+                      <span>กลุ่ม LINE ประสานงานความปลอดภัย</span>
+                    </div>
+                    <p className="mt-1.5 text-xs text-emerald-700/80 dark:text-emerald-200/70">
+                      ใช้สำหรับเข้ากลุ่มประสานงาน แจ้งข่าว และติดตามสถานการณ์เร่งด่วนของวิทยาลัย
+                    </p>
+                    <a
+                      href="https://line.me/ti/g/zCxh9mrKuF"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors"
+                    >
+                      เปิดลิงก์กลุ่ม LINE
+                    </a>
+                  </div>
+
+                  <a
+                    href="https://line.me/ti/g/zCxh9mrKuF"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mx-auto sm:mx-0 flex h-28 w-28 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 shadow-sm ring-1 ring-emerald-200 dark:bg-white"
+                    aria-label="สแกน QR เพื่อเข้ากลุ่ม LINE"
+                  >
+                    <Image
+                      src="/line-group-qr.jpg"
+                      alt="QR Code กลุ่ม LINE ประสานงานความปลอดภัย"
+                      width={112}
+                      height={112}
+                      className="h-full w-full rounded-lg object-contain"
+                    />
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -1341,6 +1498,8 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
                     <option value="all">ทุกพื้นที่วิทยาลัย</option>
                     <option value="building_a">อาคารอำนวยการ</option>
                     <option value="building_b">อาคารเรียน & โรงฝึกงานช่าง</option>
+                    <option value="digital_business">เทคโนโลยีธุรกิจดิจิทัล</option>
+                    <option value="accounting">บัญชี</option>
                     <option value="cafeteria">โรงอาหาร & กิจกรรม</option>
                     <option value="sports_complex">สนามกีฬา & ลานกีฬา</option>
                     <option value="auditorium">วิทยบริการ & หอประชุม</option>
@@ -1361,9 +1520,9 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
                     </p>
                   </div>
                 ) : (
-                  filteredReports.map((report) => (
+                  filteredReports.map((report, index) => (
                     <div
-                      key={report.id}
+                      key={`${report.id}-${report.timestamp.getTime()}-${index}`}
                       onClick={() => setSelectedReport(report)}
                       className={`group border rounded-2xl p-4 bg-white hover:bg-slate-50/50 dark:bg-zinc-900/40 dark:hover:bg-zinc-900/80 transition-all shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between gap-4 ${
                         selectedReport?.id === report.id 
@@ -1433,14 +1592,42 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
 
       {/* FOOTER */}
       <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-zinc-950 py-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center sm:flex sm:justify-between sm:items-center">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center sm:flex sm:justify-between sm:items-center gap-4">
           <div className="flex items-center justify-center gap-2 mb-4 sm:mb-0">
             <div className="h-6 w-6 rounded bg-gradient-to-tr from-rose-500 to-amber-500 text-white flex items-center justify-center text-xs font-bold shadow-md">E</div>
-            <span className="text-sm font-bold text-slate-950 dark:text-white">EduSafe Portal</span>
+            <span className="text-sm font-bold text-slate-950 dark:text-white">SafeMaemoh</span>
           </div>
+          <div className="flex flex-col items-center sm:items-end gap-2">
+            <div className="flex flex-wrap justify-center sm:justify-end gap-2">
+              <a
+                href="http://www.egtech.ac.th/index.php"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-indigo-700 dark:hover:text-indigo-300"
+              >
+                เว็บไซต์วิทยาลัย
+              </a>
+              <a
+                href="https://www.facebook.com/Egtech"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-300 hover:text-blue-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-blue-700 dark:hover:text-blue-300"
+              >
+                Facebook
+              </a>
+              <a
+                href="https://linktr.ee/TeamworkDBT"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:border-emerald-300 hover:text-emerald-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-emerald-700 dark:hover:text-emerald-300"
+              >
+                ทีมงาน
+              </a>
+            </div>
           <p className="text-xs text-slate-400 dark:text-zinc-500">
             © {new Date().getFullYear()} EduSafe วิทยาลัยเทคนิค กฟผ. แม่เมาะ. ลิขสิทธิ์ถูกต้อง. ดูแลความปลอดภัยตลอด 24 ชั่วโมง
           </p>
+          </div>
         </div>
       </footer>
 

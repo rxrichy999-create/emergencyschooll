@@ -3,7 +3,7 @@ import { IncidentReport } from './db';
 function getLineConfig() {
   return {
     channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
-    to: process.env.LINE_TO_ID,
+    to: process.env.LINE_TO_ID || process.env.LINE_GROUP_ID,
   };
 }
 
