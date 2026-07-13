@@ -11,6 +11,13 @@ export interface IncidentReport {
   reporterName: string;
   reporterPhone: string;
   isAnonymous: boolean;
+  geoLocation?: {
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+  };
+  attachmentUrl?: string;
+  attachmentName?: string;
   timestamp: string;
   status: 'pending' | 'investigating' | 'resolved';
   adminNotes?: string;
@@ -43,6 +50,9 @@ type ReportRow = {
   reporter_name: string;
   reporter_phone: string | null;
   is_anonymous: boolean;
+  geo_location?: IncidentReport['geoLocation'] | null;
+  attachment_url?: string | null;
+  attachment_name?: string | null;
   timestamp: string;
   status: IncidentReport['status'];
   admin_notes: string | null;
@@ -76,6 +86,10 @@ function getSupabase() {
   });
 }
 
+function getReportsBucket() {
+  return process.env.SUPABASE_REPORTS_BUCKET || 'incident-attachments';
+}
+
 function toReport(row: ReportRow): IncidentReport {
   return {
     id: row.id,
@@ -88,6 +102,9 @@ function toReport(row: ReportRow): IncidentReport {
     reporterName: row.reporter_name,
     reporterPhone: row.reporter_phone || '',
     isAnonymous: row.is_anonymous,
+    geoLocation: row.geo_location || undefined,
+    attachmentUrl: row.attachment_url || undefined,
+    attachmentName: row.attachment_name || undefined,
     timestamp: row.timestamp,
     status: row.status,
     adminNotes: row.admin_notes || undefined,
@@ -96,7 +113,7 @@ function toReport(row: ReportRow): IncidentReport {
 }
 
 function toReportRow(report: IncidentReport): ReportRow {
-  return {
+  const row: ReportRow = {
     id: report.id,
     title: report.title,
     category: report.category,
@@ -112,6 +129,20 @@ function toReportRow(report: IncidentReport): ReportRow {
     admin_notes: report.adminNotes || null,
     timeline: report.timeline,
   };
+
+  if (report.geoLocation) {
+    row.geo_location = report.geoLocation;
+  }
+
+  if (report.attachmentUrl) {
+    row.attachment_url = report.attachmentUrl;
+  }
+
+  if (report.attachmentName) {
+    row.attachment_name = report.attachmentName;
+  }
+
+  return row;
 }
 
 function toNotification(row: NotificationRow): NotificationHistoryItem {
@@ -152,6 +183,43 @@ export async function createReport(report: IncidentReport): Promise<IncidentRepo
   }
 
   return toReport(data as ReportRow);
+}
+
+export async function uploadReportAttachment(input: {
+  reportId: string;
+  fileName: string;
+  contentType: string;
+  dataUrl: string;
+}): Promise<{ url: string; name: string }> {
+  const [, base64] = input.dataUrl.split(',');
+
+  if (!base64) {
+    throw new Error('Invalid attachment data');
+  }
+
+  const extension = input.fileName.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
+  const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const objectPath = `${input.reportId}/${Date.now()}-${safeName || `attachment.${extension}`}`;
+  const buffer = Buffer.from(base64, 'base64');
+  const supabase = getSupabase();
+
+  const { error } = await supabase.storage
+    .from(getReportsBucket())
+    .upload(objectPath, buffer, {
+      contentType: input.contentType,
+      upsert: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const { data } = supabase.storage.from(getReportsBucket()).getPublicUrl(objectPath);
+
+  return {
+    url: data.publicUrl,
+    name: input.fileName,
+  };
 }
 
 export async function updateReport(report: IncidentReport): Promise<IncidentReport> {

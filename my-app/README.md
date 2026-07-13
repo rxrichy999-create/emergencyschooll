@@ -21,6 +21,7 @@ npm run dev
 ```bash
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_REPORTS_BUCKET=incident-attachments
 AUTH_SESSION_SECRET=
 AUTH_ACCOUNTS=
 LINE_CHANNEL_ACCESS_TOKEN=
@@ -59,6 +60,9 @@ create table if not exists reports (
   reporter_name text not null,
   reporter_phone text,
   is_anonymous boolean not null default false,
+  geo_location jsonb,
+  attachment_url text,
+  attachment_name text,
   timestamp timestamptz not null,
   status text not null,
   admin_notes text,
@@ -83,7 +87,25 @@ create table if not exists notifications (
 create index if not exists notifications_created_at_idx on notifications (created_at desc);
 ```
 
+ถ้ามีตาราง `reports` อยู่แล้วจากเวอร์ชันก่อน ให้รันเพิ่ม:
+
+```sql
+alter table reports add column if not exists geo_location jsonb;
+alter table reports add column if not exists attachment_url text;
+alter table reports add column if not exists attachment_name text;
+```
+
 แอปใช้ `SUPABASE_SERVICE_ROLE_KEY` เฉพาะฝั่ง server ใน API routes เท่านั้น อย่านำ key นี้ไปใช้ใน client component
+
+สร้าง Storage bucket สำหรับภาพแนบ:
+
+```sql
+insert into storage.buckets (id, name, public)
+values ('incident-attachments', 'incident-attachments', true)
+on conflict (id) do update set public = true;
+```
+
+ถ้าใช้ bucket ชื่ออื่น ให้ตั้งค่า `SUPABASE_REPORTS_BUCKET` ให้ตรงกัน รูปภาพที่แนบจะถูกอัปโหลดไปที่ bucket นี้และบันทึกลิงก์ไว้ใน `reports.attachment_url`
 
 ## LINE Alert
 

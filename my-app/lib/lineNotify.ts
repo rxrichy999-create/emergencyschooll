@@ -25,6 +25,10 @@ export async function sendLineAlert(report: IncidentReport) {
     `ระดับ: ${report.urgency}`,
     `สถานที่: ${report.specificLocation}`,
     `ผู้แจ้ง: ${report.isAnonymous ? 'ไม่เปิดเผยตัวตน' : report.reporterName}`,
+    report.geoLocation
+      ? `พิกัด: https://www.google.com/maps?q=${report.geoLocation.latitude},${report.geoLocation.longitude}`
+      : 'พิกัด: ไม่ได้เปิดเผย',
+    report.attachmentUrl ? `ภาพเหตุการณ์: ${report.attachmentUrl}` : 'ภาพเหตุการณ์: ไม่มีไฟล์แนบ',
   ].join('\n');
 
   const response = await fetch('https://api.line.me/v2/bot/message/push', {

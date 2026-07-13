@@ -17,6 +17,13 @@ interface IncidentReport {
   reporterName: string;
   reporterPhone: string;
   isAnonymous: boolean;
+  geoLocation?: {
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+  };
+  attachmentUrl?: string;
+  attachmentName?: string;
   timestamp: Date;
   status: 'pending' | 'investigating' | 'resolved';
   adminNotes?: string;
@@ -45,6 +52,12 @@ type ApiIncidentReport = Omit<IncidentReport, 'timestamp' | 'timeline'> & {
 
 type ApiNotificationHistoryItem = Omit<NotificationHistoryItem, 'createdAt'> & {
   createdAt: string;
+};
+
+type AttachmentPayload = {
+  fileName: string;
+  contentType: string;
+  dataUrl: string;
 };
 
 const createClientId = (prefix: 'REP' | 'SOS') => {
@@ -183,6 +196,16 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
   const [reporterName, setReporterName] = useState('');
   const [reporterPhone, setReporterPhone] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [geoLocation, setGeoLocation] = useState<IncidentReport['geoLocation']>();
+  const [geoStatus, setGeoStatus] = useState('');
+  const [attachment, setAttachment] = useState<AttachmentPayload | null>(null);
+  const [attachmentName, setAttachmentName] = useState('');
+  const [sosGeoLocation, setSosGeoLocation] = useState<IncidentReport['geoLocation']>();
+  const [sosGeoStatus, setSosGeoStatus] = useState('');
+  const [sosAttachment, setSosAttachment] = useState<AttachmentPayload | null>(null);
+  const [sosAttachmentName, setSosAttachmentName] = useState('');
+  const [sosIsAnonymous, setSosIsAnonymous] = useState(false);
+  const [sosReporterName, setSosReporterName] = useState('');
 
   // Filter states
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -269,6 +292,71 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
     localStorage.setItem('edusafe_reports', JSON.stringify(updated));
   };
 
+  const requestCurrentLocation = (
+    onSuccess: (position: IncidentReport['geoLocation']) => void,
+    onStatus: (message: string) => void
+  ) => {
+    if (!navigator.geolocation) {
+      onStatus('อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง');
+      return;
+    }
+
+    onStatus('กำลังขออนุญาตตำแหน่ง...');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        };
+        onSuccess(coords);
+        onStatus(`บันทึกพิกัดแล้ว (แม่นยำ ~${Math.round(position.coords.accuracy)} ม.)`);
+      },
+      () => {
+        onStatus('ไม่ได้รับอนุญาตตำแหน่ง หรือไม่สามารถอ่านพิกัดได้');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      }
+    );
+  };
+
+  const readImageAttachment = (
+    file: File | undefined,
+    onSuccess: (payload: AttachmentPayload | null) => void,
+    onName: (name: string) => void
+  ) => {
+    if (!file) {
+      onSuccess(null);
+      onName('');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      showToast('กรุณาแนบไฟล์รูปภาพเท่านั้น', 'danger');
+      return;
+    }
+
+    if (file.size > 4 * 1024 * 1024) {
+      showToast('รูปภาพต้องมีขนาดไม่เกิน 4MB', 'danger');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      onSuccess({
+        fileName: file.name,
+        contentType: file.type,
+        dataUrl: String(reader.result),
+      });
+      onName(file.name);
+    };
+    reader.onerror = () => showToast('อ่านไฟล์รูปภาพไม่สำเร็จ', 'danger');
+    reader.readAsDataURL(file);
+  };
+
   useEffect(() => {
     const loadInitialData = async () => {
       await fetchReports();
@@ -306,13 +394,15 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
       reporterName: isAnonymous ? 'ผู้ไม่ประสงค์ออกนาม' : reporterName.trim(),
       reporterPhone: isAnonymous ? '' : reporterPhone.trim(),
       isAnonymous,
+      geoLocation,
+      attachmentName: attachment?.fileName,
     };
 
     try {
       const res = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newReportData)
+        body: JSON.stringify({ ...newReportData, attachment })
       });
       
       if (res.ok) {
@@ -349,6 +439,10 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
     setReporterName('');
     setReporterPhone('');
     setIsAnonymous(false);
+    setGeoLocation(undefined);
+    setGeoStatus('');
+    setAttachment(null);
+    setAttachmentName('');
   };
 
   // Dispatch Simulated Instant SOS via API POST
@@ -362,16 +456,18 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
       location: 'other',
       specificLocation: 'ไม่ระบุพิกัดชัดเจน (ส่งสัญญาณด่วนจากปุ่ม SOS หน้าแรก)',
       description: `ระบบส่งสัญญาณขอความช่วยเหลือเร่งด่วนชนิด: ${emergencyType} ขอความกรุณาเจ้าหน้าที่เวร เจ้าหน้าที่ความปลอดภัย และครูพยาบาลเข้าพื้นที่รับผิดชอบและสแกนพื้นที่โดยรอบเพื่อช่วยเหลืออย่างเร่งด่วนที่สุด!`,
-      reporterName: 'ปุ่มฉุกเฉิน SOS (หน้าหลัก)',
-      reporterPhone: 'สายด่วนโรงเรียน',
-      isAnonymous: false,
+      reporterName: sosIsAnonymous ? 'ผู้ไม่ประสงค์ออกนาม' : (sosReporterName.trim() || 'ปุ่มฉุกเฉิน SOS (หน้าหลัก)'),
+      reporterPhone: sosIsAnonymous ? '' : 'สายด่วนโรงเรียน',
+      isAnonymous: sosIsAnonymous,
+      geoLocation: sosGeoLocation,
+      attachmentName: sosAttachment?.fileName,
     };
 
     try {
       const res = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newReportData)
+        body: JSON.stringify({ ...newReportData, attachment: sosAttachment })
       });
       if (res.ok) {
         await fetchReports();
@@ -398,6 +494,12 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
       showToast(`🚨 ส่ง SOS สำเร็จ (จำลองเก็บในเครื่อง)`, 'success');
     }
     setShowSosModal(false);
+    setSosGeoLocation(undefined);
+    setSosGeoStatus('');
+    setSosAttachment(null);
+    setSosAttachmentName('');
+    setSosIsAnonymous(false);
+    setSosReporterName('');
   };
 
   // Update Status by Admin via API PATCH
@@ -1272,11 +1374,53 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
                   ></textarea>
                 </div>
 
-                {/* Anonymous Toggle Switch */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-zinc-900/60 border border-slate-200/50 dark:border-zinc-800/40">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200">อนุญาตเปิดเผยตำแหน่งปัจจุบัน</span>
+                        <p className="text-[10px] text-slate-500 mt-0.5">ระบบจะขอ permission จาก browser ก่อนบันทึกพิกัด</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => requestCurrentLocation(setGeoLocation, setGeoStatus)}
+                        className="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-indigo-700"
+                      >
+                        ขอพิกัด
+                      </button>
+                    </div>
+                    {geoStatus && <p className="mt-2 text-[10px] text-slate-500">{geoStatus}</p>}
+                    {geoLocation && (
+                      <a
+                        href={`https://www.google.com/maps?q=${geoLocation.latitude},${geoLocation.longitude}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 block text-[10px] font-semibold text-indigo-600 hover:underline"
+                      >
+                        ดูพิกัดบนแผนที่
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-zinc-900/60 border border-slate-200/50 dark:border-zinc-800/40">
+                    <label className="block text-xs font-semibold text-slate-800 dark:text-zinc-200 mb-1.5">
+                      แนบภาพเหตุการณ์
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => readImageAttachment(e.target.files?.[0], setAttachment, setAttachmentName)}
+                      className="block w-full text-[11px] text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-3 file:py-1.5 file:text-[10px] file:font-bold file:text-white hover:file:bg-indigo-700 dark:text-zinc-300"
+                    />
+                    <p className="mt-1 text-[10px] text-slate-500">{attachmentName || 'รองรับรูปภาพ ขนาดไม่เกิน 4MB'}</p>
+                  </div>
+                </div>
+
+                {/* Reporter Visibility */}
                 <div className="flex items-center justify-between p-3 rounded-xl bg-slate-100/80 dark:bg-zinc-900/60 border border-slate-200/50 dark:border-zinc-800/40">
                   <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200">ต้องการส่งแบบไม่ระบุตัวตน (Anonymous)</span>
-                    <span className="text-[10px] text-slate-500">ระบบจะไม่เปิดเผยข้อมูลผู้แจ้งแก่บุคคลอื่น</span>
+                    <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200">ช่องกรอกชื่อผู้แจ้ง</span>
+                    <span className="text-[10px] text-slate-500">{isAnonymous ? 'ไม่ระบุตัวตน' : 'แจ้งชื่อและช่องทางติดต่อ'}</span>
                   </div>
                   <button
                     type="button"
@@ -1691,6 +1835,36 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
                     {STATUS_MAP[selectedReport.status].label}
                   </span>
                 </div>
+                <div>
+                  <span className="text-slate-400 block font-semibold mb-0.5">🧭 ตำแหน่งปัจจุบัน:</span>
+                  {selectedReport.geoLocation ? (
+                    <a
+                      href={`https://www.google.com/maps?q=${selectedReport.geoLocation.latitude},${selectedReport.geoLocation.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-bold text-indigo-600 hover:underline dark:text-indigo-400"
+                    >
+                      เปิดพิกัดบน Google Maps
+                    </a>
+                  ) : (
+                    <span className="text-slate-500">ไม่ได้เปิดเผยพิกัด</span>
+                  )}
+                </div>
+                <div>
+                  <span className="text-slate-400 block font-semibold mb-0.5">🖼️ ภาพเหตุการณ์:</span>
+                  {selectedReport.attachmentUrl ? (
+                    <a
+                      href={selectedReport.attachmentUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-bold text-indigo-600 hover:underline dark:text-indigo-400"
+                    >
+                      {selectedReport.attachmentName || 'เปิดภาพที่แนบ'}
+                    </a>
+                  ) : (
+                    <span className="text-slate-500">ไม่มีไฟล์แนบ</span>
+                  )}
+                </div>
               </div>
 
               {/* Core Description */}
@@ -1835,6 +2009,60 @@ export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMod
 
             <div className="p-6 space-y-4">
               <p className="text-xs text-slate-500 text-center">กรุณาเลือกประเภทภัยวิกฤตเพื่อดำเนินการส่งพิกัดด่วน</p>
+
+              <div className="rounded-2xl border border-red-100 bg-red-50/60 p-3 dark:border-red-900/40 dark:bg-red-950/20 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800 dark:text-zinc-100">อนุญาตเปิดเผยตำแหน่งปัจจุบัน</p>
+                    <p className="text-[10px] text-slate-500">แนะนำให้เปิดเพื่อให้ทีมช่วยเหลือไปถึงจุดเกิดเหตุเร็วขึ้น</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => requestCurrentLocation(setSosGeoLocation, setSosGeoStatus)}
+                    className="shrink-0 rounded-lg bg-red-600 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-red-700"
+                  >
+                    ขอพิกัด
+                  </button>
+                </div>
+                {sosGeoStatus && <p className="text-[10px] text-slate-500">{sosGeoStatus}</p>}
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 dark:text-zinc-100 mb-1.5">
+                    แนบภาพเหตุการณ์
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => readImageAttachment(e.target.files?.[0], setSosAttachment, setSosAttachmentName)}
+                    className="block w-full text-[11px] text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-red-600 file:px-3 file:py-1.5 file:text-[10px] file:font-bold file:text-white hover:file:bg-red-700 dark:text-zinc-300"
+                  />
+                  <p className="mt-1 text-[10px] text-slate-500">{sosAttachmentName || 'ถ้ามีภาพประกอบ สามารถแนบก่อนส่งสัญญาณ'}</p>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800 dark:text-zinc-100">ช่องกรอกชื่อผู้แจ้ง</p>
+                    <p className="text-[10px] text-slate-500">{sosIsAnonymous ? 'ส่งแบบไม่ระบุตัวตน' : 'แจ้งชื่อพร้อมสัญญาณ SOS'}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSosIsAnonymous(!sosIsAnonymous)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${sosIsAnonymous ? 'bg-red-600' : 'bg-slate-300 dark:bg-zinc-700'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${sosIsAnonymous ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+
+                {!sosIsAnonymous && (
+                  <input
+                    type="text"
+                    value={sosReporterName}
+                    onChange={(e) => setSosReporterName(e.target.value)}
+                    placeholder="ชื่อผู้แจ้ง (ถ้าไม่กรอก ระบบจะใช้ชื่อปุ่ม SOS)"
+                    className="w-full rounded-xl border border-red-100 bg-white px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-900/40 dark:bg-zinc-950 dark:text-white"
+                  />
+                )}
+              </div>
               
               <div className="grid grid-cols-2 gap-3">
                 <button

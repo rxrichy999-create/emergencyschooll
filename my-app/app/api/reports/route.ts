@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
-import { appendNotification, createReport, readReports, IncidentReport } from '@/lib/db';
+import { appendNotification, createReport, readReports, uploadReportAttachment, IncidentReport } from '@/lib/db';
 import { sendLineAlert, shouldSendLineAlert } from '@/lib/lineNotify';
+
+type AttachmentPayload = {
+  fileName: string;
+  contentType: string;
+  dataUrl: string;
+};
 
 export async function GET() {
   try {
@@ -15,8 +21,25 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const reportId = body.id || `REP-${Math.floor(100 + Math.random() * 900)}`;
+    let attachment: { url: string; name: string } | null = null;
+    const attachmentPayload = body.attachment as AttachmentPayload | undefined;
+
+    if (attachmentPayload?.dataUrl) {
+      if (!attachmentPayload.contentType.startsWith('image/')) {
+        return NextResponse.json({ error: 'Attachment must be an image' }, { status: 400 });
+      }
+
+      attachment = await uploadReportAttachment({
+        reportId,
+        fileName: attachmentPayload.fileName,
+        contentType: attachmentPayload.contentType,
+        dataUrl: attachmentPayload.dataUrl,
+      });
+    }
+
     const newReport: IncidentReport = {
-      id: body.id || `REP-${Math.floor(100 + Math.random() * 900)}`,
+      id: reportId,
       title: body.title,
       category: body.category,
       urgency: body.urgency,
@@ -26,6 +49,9 @@ export async function POST(request: Request) {
       reporterName: body.isAnonymous ? 'ผู้ไม่ประสงค์ออกนาม' : (body.reporterName || 'ผู้ไม่ประสงค์ออกนาม'),
       reporterPhone: body.isAnonymous ? '' : (body.reporterPhone || ''),
       isAnonymous: body.isAnonymous || false,
+      geoLocation: body.geoLocation,
+      attachmentUrl: attachment?.url,
+      attachmentName: attachment?.name,
       timestamp: new Date().toISOString(),
       status: 'pending',
       timeline: body.timeline || [
