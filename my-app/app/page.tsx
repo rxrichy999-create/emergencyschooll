@@ -775,7 +775,7 @@ function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boo
           <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-semibold mb-3 border border-rose-500/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                 แจ้งเหตุด่วน 24 ชั่วโมง
               </div>
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
@@ -790,10 +790,9 @@ function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boo
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto flex-shrink-0">
               <button
                 onClick={() => setShowSosModal(true)}
-                className="px-5 py-3 sm:px-6 sm:py-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-base sm:text-lg tracking-wide shadow-lg shadow-red-600/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 animate-pulse-glow w-full sm:w-auto"
+                className="px-5 py-3 sm:px-6 sm:py-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-base sm:text-lg tracking-wide shadow-lg shadow-red-600/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 w-full sm:w-auto"
               >
                 <span className="flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                 </span>
                 แจ้งเหตุฉุกเฉิน (SOS)
