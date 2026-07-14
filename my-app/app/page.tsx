@@ -631,7 +631,7 @@ function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boo
             </div>
             <div>
               <h1 className="text-base sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
-                SafeMaeMoh <span className="hidden sm:inline-flex text-xs bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-normal px-2 py-0.5 rounded-full border border-indigo-500/20">วท. กฟผ. แม่เมาะ</span>
+                SafeMaeMoh <span className="hidden sm:inline-flex text-xs bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-normal px-2 py-0.5 rounded-full border border-indigo-500/20">วิทยาลัยเทคนิค กฟผ.แม่เมาะ</span>
               </h1>
               <p className="hidden md:block text-[10px] text-slate-500 dark:text-zinc-400">ระบบรายงานเหตุและจัดการความปลอดภัย วิทยาลัยเทคนิค กฟผ. แม่เมาะ</p>
             </div>
