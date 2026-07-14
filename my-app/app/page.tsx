@@ -1736,9 +1736,18 @@ function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boo
       {/* FOOTER */}
       <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-zinc-950 py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center sm:flex sm:justify-between sm:items-center gap-4">
-          <div className="flex items-center justify-center gap-2 mb-4 sm:mb-0">
-            <div className="h-6 w-6 rounded bg-gradient-to-tr from-rose-500 to-amber-500 text-white flex items-center justify-center text-xs font-bold shadow-md">E</div>
-            <span className="text-sm font-bold text-slate-950 dark:text-white">SafeMaemoh</span>
+          <div className="mb-4 flex items-center justify-center gap-3 sm:mb-0">
+            <Image
+              src="/mae-moh-logo.png"
+              alt="โลโก้วิทยาลัยเทคนิค กฟผ. แม่เมาะ"
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-full object-contain"
+            />
+            <div className="text-left">
+              <span className="block text-sm font-bold text-slate-950 dark:text-white">SafeMaemoh</span>
+              <span className="block text-[11px] text-slate-500 dark:text-zinc-400">วิทยาลัยเทคนิค กฟผ. แม่เมาะ</span>
+            </div>
           </div>
           <div className="flex flex-col items-center sm:items-end gap-2">
             <div className="flex flex-wrap justify-center sm:justify-end gap-2">
@@ -1767,8 +1776,11 @@ function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boo
                 ทีมงาน
               </a>
             </div>
-          <p className="text-xs text-slate-400 dark:text-zinc-500">
+          <p className="hidden text-xs text-slate-400 dark:text-zinc-500">
             © {new Date().getFullYear()} EduSafe วิทยาลัยเทคนิค กฟผ. แม่เมาะ. ลิขสิทธิ์ถูกต้อง. ดูแลความปลอดภัยตลอด 24 ชั่วโมง
+          </p>
+          <p className="text-center text-xs leading-relaxed text-slate-500 dark:text-zinc-400 sm:text-right">
+            © 2026 SafeMaemoh วิทยาลัยเทคนิค กฟผ. แม่เมาะ. ลิขสิทธิ์ถูกต้อง. ดูแลความปลอดภัยตลอด 24 ชั่วโมง
           </p>
           </div>
         </div>
