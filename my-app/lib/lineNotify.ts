@@ -8,7 +8,9 @@ function getLineConfig() {
 }
 
 export function shouldSendLineAlert(report: IncidentReport) {
-  return report.id.startsWith('SOS-') || report.urgency === 'critical';
+  // ทุกการแจ้งเหตุจากหน้าเว็บต้องส่งให้ทีมรับทราบผ่าน LINE
+  // ส่วน SOS ยังคงแยกได้จากรหัสรายงานและระดับความเร่งด่วนในข้อความแจ้งเตือน
+  return Boolean(report.id);
 }
 
 export async function sendLineAlert(report: IncidentReport) {

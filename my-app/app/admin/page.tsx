@@ -1,5 +1,5 @@
-import { EduSafeDashboard } from '../page';
+import HomePage from '../page';
 
 export default function AdminPage() {
-  return <EduSafeDashboard defaultAdminMode />;
+  return <HomePage />;
 }

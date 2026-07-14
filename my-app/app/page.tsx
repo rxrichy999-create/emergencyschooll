@@ -179,7 +179,7 @@ const INITIAL_REPORTS: IncidentReport[] = [
   }
 ];
 
-export function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boolean }) {
+function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boolean }) {
   const pathname = usePathname();
   const isAdminRoute = defaultAdminMode || pathname?.startsWith('/admin') === true;
   const [reports, setReports] = useState<IncidentReport[]>([]);
