@@ -23,6 +23,8 @@
 }
 
 html, body {
+  max-width: 100%;
+  overflow-x: clip;
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);

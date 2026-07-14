@@ -592,7 +592,7 @@ function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boo
       
       {/* Toast Alert Banner */}
       {toast && (
-        <div className="fixed top-5 right-5 z-50 animate-bounce shadow-2xl rounded-xl overflow-hidden max-w-sm flex items-center border">
+        <div className="fixed inset-x-4 top-5 z-50 flex max-w-none items-center overflow-hidden rounded-xl border shadow-2xl animate-bounce sm:inset-x-auto sm:right-5 sm:max-w-sm">
           <div className={`p-4 ${
             toast.type === 'success' ? 'bg-emerald-500 text-white border-emerald-600' : 
             toast.type === 'danger' ? 'bg-rose-500 text-white border-rose-600' : 
@@ -608,7 +608,7 @@ function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boo
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             )}
           </div>
-          <div className="px-4 py-3 bg-white dark:bg-zinc-900 text-sm font-medium text-slate-800 dark:text-zinc-200">
+          <div className="min-w-0 flex-1 break-words px-4 py-3 text-sm font-medium text-slate-800 dark:bg-zinc-900 dark:text-zinc-200 bg-white">
             {toast.message}
           </div>
         </div>
@@ -1374,10 +1374,10 @@ function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boo
                   ></textarea>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-zinc-900/60 border border-slate-200/50 dark:border-zinc-800/40">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="min-w-0 p-3 rounded-xl bg-slate-100/80 dark:bg-zinc-900/60 border border-slate-200/50 dark:border-zinc-800/40">
                     <div className="flex items-start justify-between gap-3">
-                      <div>
+                      <div className="min-w-0">
                         <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200">อนุญาตเปิดเผยตำแหน่งปัจจุบัน</span>
                         <p className="text-[10px] text-slate-500 mt-0.5">ระบบจะขอ permission จาก browser ก่อนบันทึกพิกัด</p>
                       </div>
@@ -1402,7 +1402,7 @@ function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boo
                     )}
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-zinc-900/60 border border-slate-200/50 dark:border-zinc-800/40">
+                  <div className="min-w-0 p-3 rounded-xl bg-slate-100/80 dark:bg-zinc-900/60 border border-slate-200/50 dark:border-zinc-800/40">
                     <label className="block text-xs font-semibold text-slate-800 dark:text-zinc-200 mb-1.5">
                       แนบภาพเหตุการณ์
                     </label>
@@ -1410,7 +1410,7 @@ function EduSafeDashboard({ defaultAdminMode = false }: { defaultAdminMode?: boo
                       type="file"
                       accept="image/*"
                       onChange={(e) => readImageAttachment(e.target.files?.[0], setAttachment, setAttachmentName)}
-                      className="block w-full text-[11px] text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-3 file:py-1.5 file:text-[10px] file:font-bold file:text-white hover:file:bg-indigo-700 dark:text-zinc-300"
+                      className="block w-full min-w-0 max-w-full overflow-hidden text-[11px] text-slate-600 file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-3 file:py-1.5 file:text-[10px] file:font-bold file:text-white hover:file:bg-indigo-700 dark:text-zinc-300"
                     />
                     <p className="mt-1 text-[10px] text-slate-500">{attachmentName || 'รองรับรูปภาพ ขนาดไม่เกิน 4MB'}</p>
                   </div>
